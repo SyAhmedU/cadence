@@ -1120,13 +1120,182 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-  /* ---- RESPONSIVE ---- */
-  @media (max-width: 600px) {
-    .builder-body, .review-body { padding: 28px 16px; }
-    .join-card { padding: 32px 24px; }
-    .survey-question-area { padding: 28px 16px 80px; }
-    .modal { padding: 24px; }
+  /* ---- DIM PICKER BOTTOM SHEET ---- */
+  .dim-sheet-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .dim-sheet-overlay.open { display: flex; }
+
+  .dim-sheet {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    width: 100%;
+    max-width: 600px;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.14);
+    animation: sheetUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes sheetUp {
+    from { transform: translateY(48px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
+
+  .dim-sheet-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 0;
+    flex-shrink: 0;
+  }
+
+  .dim-sheet-header {
+    padding: 16px 24px 14px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dim-sheet-title {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .dim-sheet-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dim-sheet-quick {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .dim-quick-btn {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-light);
+    border: none;
+    border-radius: 980px;
+    padding: 5px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .dim-quick-btn:hover { background: var(--accent); color: #fff; }
+
+  .dim-sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dim-pill {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .dim-pill:hover { border-color: var(--accent); background: var(--accent-light); }
+  .dim-pill.selected { border-color: var(--accent); background: var(--accent-light); }
+
+  .dim-pill-check {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    color: transparent;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .dim-pill.selected .dim-pill-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .dim-pill-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    word-break: break-word;
+  }
+
+  .dim-pill-count {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .dim-sheet-footer {
+    padding: 14px 24px 20px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* ---- DEMOGRAPHIC SCALE CARD BADGE ---- */
+  .scale-card-dims {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* ---- GLOBAL: no text overflow ---- */
+  .choice-opt  { word-break: break-word; line-height: 1.35; }
+  .likert-label { word-break: break-word; }
+  .scale-card-name { word-break: break-word; }
+  .q-text { word-break: break-word; }
+
+  /* ---- RESPONSIVE / MOBILE-FIRST ---- */
+  @media (max-width: 640px) {
+    .builder-nav { padding: 14px 16px; }
+    .builder-body, .review-body { padding: 24px 16px; }
+    .builder-section-title { font-size: 22px; }
+    .builder-section-sub { font-size: 14px; margin-bottom: 24px; }
+    .join-card { padding: 28px 20px; }
+    .survey-top { padding: 14px 14px 0; gap: 10px; }
+    .survey-question-area { padding: 24px 16px 104px; }
+    .modal { padding: 24px; border-radius: 20px; }
     .scale-grid { grid-template-columns: 1fr; }
+    .choice-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+    .q-text { font-size: clamp(18px, 5vw, 24px); margin-bottom: 24px; }
+    .review-stat-val { font-size: 26px; }
+    .dim-sheet { border-radius: 20px 20px 0 0; }
+    .dim-sheet-header, .dim-sheet-body, .dim-sheet-footer { padding-left: 16px; padding-right: 16px; }
+    .survey-nav-hint { display: none; }
+    .btn-next { padding: 14px 20px; font-size: 15px; }
   }
 </style>
 </head>
@@ -1411,6 +1580,26 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeExportModal()">Close</button>
       <button class="btn btn-primary" onclick="exportXLSX()">Download Excel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DIM PICKER BOTTOM SHEET ==================== -->
+<div class="dim-sheet-overlay" id="dim-picker-modal" onclick="closeDimPickerOutside(event)">
+  <div class="dim-sheet">
+    <div class="dim-sheet-handle"></div>
+    <div class="dim-sheet-header">
+      <div class="dim-sheet-title" id="dim-picker-title"></div>
+      <div class="dim-sheet-sub" id="dim-picker-sub"></div>
+      <div class="dim-sheet-quick">
+        <button class="dim-quick-btn" onclick="selectAllDims()">Select all</button>
+        <button class="dim-quick-btn" onclick="clearAllDims()">Clear all</button>
+      </div>
+    </div>
+    <div class="dim-sheet-body" id="dim-picker-list"></div>
+    <div class="dim-sheet-footer">
+      <button class="btn btn-secondary" onclick="closeDimPicker()" style="flex:1;">Cancel</button>
+      <button class="btn btn-primary" id="dim-confirm-btn" onclick="confirmDimPicker()" style="flex:2;">Done</button>
     </div>
   </div>
 </div>
@@ -1827,8 +2016,9 @@ let state = {
     desc: '',
     researcher: '',
     maxWaves: 3,
-    selectedScales: [],  // array of scale ids from library
-    customQuestions: [], // array of { text, type, options?, label }
+    selectedScales: [],     // array of scale ids from library
+    scaleDimensions: {},    // { [scaleId]: ['dim1', 'dim2', ...] } — only for demographic scales
+    customQuestions: [],    // array of { text, type, options?, label }
     createdAt: null,
   },
   // Survey session
@@ -1914,16 +2104,32 @@ function renderScaleGrid() {
 
   grid.innerHTML = scales.map(s => {
     const sel = state.study.selectedScales.includes(s.id)
+    let dimsBadge = ''
+    if (s.demographic && sel) {
+      const chosen = state.study.scaleDimensions[s.id] || []
+      const allDims = [...new Set(s.items.map(i => i.dim).filter(Boolean))]
+      const itemCount = s.items.filter(i => chosen.includes(i.dim)).length
+      dimsBadge = `<div class="scale-card-dims">${chosen.length} of ${allDims.length} dimensions · ${itemCount} items</div>`
+    } else if (s.demographic) {
+      dimsBadge = `<div class="scale-card-dims" style="color:var(--text-tertiary)">Tap to choose dimensions</div>`
+    }
+    const indicator = s.demographic ? '≡' : (sel ? '✓' : '')
     return `<div class="scale-card ${sel ? 'selected' : ''}" onclick="toggleScale(${s.id})">
-      <div class="scale-card-check">${sel ? '✓' : ''}</div>
+      <div class="scale-card-check" style="${s.demographic && sel ? 'background:var(--accent);color:#fff;font-size:13px;' : ''}">${indicator}</div>
       <div class="scale-card-abbr">${s.abbr}</div>
       <div class="scale-card-name">${s.name}</div>
       <div class="scale-card-meta">${s.items_count} items · ${s.domain}</div>
+      ${dimsBadge}
     </div>`
   }).join('')
 }
 
 function toggleScale(id) {
+  const scale = SCALE_LIBRARY.find(s => s.id === id)
+  if (scale && scale.demographic) {
+    openDimPicker(id)
+    return
+  }
   const idx = state.study.selectedScales.indexOf(id)
   if (idx === -1) state.study.selectedScales.push(id)
   else state.study.selectedScales.splice(idx, 1)
@@ -2013,10 +2219,18 @@ function addCustomQ() {
 }
 
 // ---- Review ----
+function getEffectiveItemCount(id) {
+  const scale = SCALE_LIBRARY.find(s => s.id === id)
+  if (!scale) return 0
+  const dims = state.study.scaleDimensions[id]
+  if (!dims || !scale.demographic) return scale.items_count
+  return scale.items.filter(i => !i.dim || dims.includes(i.dim)).length
+}
+
 function renderReview() {
   const div = document.getElementById('review-content')
   const sel = state.study.selectedScales.map(id => SCALE_LIBRARY.find(s => s.id === id))
-  const totalItems = sel.reduce((a, s) => a + s.items_count, 0) + state.study.customQuestions.length
+  const totalItems = state.study.selectedScales.reduce((a, id) => a + getEffectiveItemCount(id), 0) + state.study.customQuestions.length
 
   div.innerHTML = `
     <div class="review-summary-card">
@@ -2030,7 +2244,11 @@ function renderReview() {
         <div class="review-stat"><span class="review-stat-val">~${Math.ceil(totalItems * 0.5)} min</span><span class="review-stat-label">Est. Time</span></div>
       </div>
       ${sel.length > 0 ? `<div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Scales Included</div>
-      <div style="display:flex; gap:6px; flex-wrap:wrap;">${sel.map(s => `<span class="tag">${s.abbr}</span>`).join('')}</div>` : ''}
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">${sel.map(s => {
+        const dims = state.study.scaleDimensions[s.id]
+        const suffix = (s.demographic && dims) ? ` (${dims.length} dim${dims.length !== 1 ? 's' : ''})` : ''
+        return `<span class="tag">${s.abbr}${suffix}</span>`
+      }).join('')}</div>` : ''}
     </div>
     ${totalItems === 0 ? `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Add at least one scale or custom question before publishing.</p></div>` : ''}
   `
@@ -2038,8 +2256,7 @@ function renderReview() {
 
 // ---- Publish ----
 function publishStudy() {
-  const sel = state.study.selectedScales.map(id => SCALE_LIBRARY.find(s => s.id === id))
-  const totalItems = sel.reduce((a, s) => a + s.items_count, 0) + state.study.customQuestions.length
+  const totalItems = state.study.selectedScales.reduce((a, id) => a + getEffectiveItemCount(id), 0) + state.study.customQuestions.length
   if (totalItems === 0) { toast('Add at least one question first.'); return }
 
   const studyId = generateCode(6)
@@ -2053,6 +2270,7 @@ function publishStudy() {
     researcher: state.study.researcher,
     maxWaves: state.study.maxWaves,
     selectedScaleIds: state.study.selectedScales,
+    scaleDimensions: state.study.scaleDimensions,
     customQuestions: state.study.customQuestions,
     createdAt: state.study.createdAt,
   }
@@ -2152,13 +2370,98 @@ function copyParticipantCode() {
   navigator.clipboard.writeText(val).then(() => toast('Participant code copied!'))
 }
 
+// =====================================================================
+//  DIMENSION PICKER
+// =====================================================================
+let dimPickerState = { scaleId: null, dims: new Set() }
+
+function openDimPicker(id) {
+  const scale = SCALE_LIBRARY.find(s => s.id === id)
+  if (!scale) return
+  dimPickerState.scaleId = id
+  const allDims = [...new Set(scale.items.map(i => i.dim).filter(Boolean))]
+  const existing = state.study.scaleDimensions[id]
+  dimPickerState.dims = existing ? new Set(existing) : new Set(allDims)
+  document.getElementById('dim-picker-title').textContent = scale.abbr
+  document.getElementById('dim-picker-sub').textContent = scale.name
+  renderDimList(scale, allDims)
+  document.getElementById('dim-picker-modal').classList.add('open')
+}
+
+function renderDimList(scale, allDims) {
+  const dimCounts = {}
+  for (const item of scale.items) {
+    if (item.dim) dimCounts[item.dim] = (dimCounts[item.dim] || 0) + 1
+  }
+  document.getElementById('dim-picker-list').innerHTML = allDims.map(dim => `
+    <div class="dim-pill ${dimPickerState.dims.has(dim) ? 'selected' : ''}" onclick="toggleDim('${dim.replace(/'/g,"\\'")}')">
+      <div class="dim-pill-check">${dimPickerState.dims.has(dim) ? '✓' : ''}</div>
+      <div class="dim-pill-name">${dim}</div>
+      <div class="dim-pill-count">${dimCounts[dim]} item${dimCounts[dim] !== 1 ? 's' : ''}</div>
+    </div>`).join('')
+  updateDimConfirmBtn(scale)
+}
+
+function updateDimConfirmBtn(scale) {
+  const s = scale || SCALE_LIBRARY.find(s => s.id === dimPickerState.scaleId)
+  const count = s.items.filter(i => dimPickerState.dims.has(i.dim)).length
+  const btn = document.getElementById('dim-confirm-btn')
+  btn.textContent = count > 0 ? `Add ${count} item${count !== 1 ? 's' : ''} to study` : 'Select at least one dimension'
+  btn.disabled = count === 0
+}
+
+function toggleDim(dim) {
+  if (dimPickerState.dims.has(dim)) dimPickerState.dims.delete(dim)
+  else dimPickerState.dims.add(dim)
+  const scale = SCALE_LIBRARY.find(s => s.id === dimPickerState.scaleId)
+  const allDims = [...new Set(scale.items.map(i => i.dim).filter(Boolean))]
+  renderDimList(scale, allDims)
+}
+
+function selectAllDims() {
+  const scale = SCALE_LIBRARY.find(s => s.id === dimPickerState.scaleId)
+  const allDims = [...new Set(scale.items.map(i => i.dim).filter(Boolean))]
+  dimPickerState.dims = new Set(allDims)
+  renderDimList(scale, allDims)
+}
+
+function clearAllDims() {
+  const scale = SCALE_LIBRARY.find(s => s.id === dimPickerState.scaleId)
+  const allDims = [...new Set(scale.items.map(i => i.dim).filter(Boolean))]
+  dimPickerState.dims = new Set()
+  renderDimList(scale, allDims)
+}
+
+function confirmDimPicker() {
+  const id = dimPickerState.scaleId
+  const dims = [...dimPickerState.dims]
+  if (dims.length === 0) return
+  if (!state.study.selectedScales.includes(id)) state.study.selectedScales.push(id)
+  state.study.scaleDimensions[id] = dims
+  closeDimPicker()
+  renderScaleGrid()
+}
+
+function closeDimPicker() {
+  document.getElementById('dim-picker-modal').classList.remove('open')
+}
+
+function closeDimPickerOutside(e) {
+  if (e.target === document.getElementById('dim-picker-modal')) closeDimPicker()
+}
+
+// =====================================================================
+//  BUILD QUESTION LIST
+// =====================================================================
 function buildQuestionList(cfg) {
   const qs = []
   // Scales first
   for (const id of (cfg.selectedScaleIds || [])) {
     const scale = SCALE_LIBRARY.find(s => s.id === id)
     if (!scale) continue
+    const allowedDims = (cfg.scaleDimensions && cfg.scaleDimensions[id]) || null
     for (const item of scale.items) {
+      if (allowedDims && item.dim && !allowedDims.includes(item.dim)) continue
       if (scale.demographic) {
         qs.push({
           type: 'demographic',
