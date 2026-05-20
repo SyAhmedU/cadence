@@ -719,6 +719,9 @@
     margin-bottom: 12px;
   }
 
+  /* Demographic "Optional" tint */
+  .q-scale-label[data-optional] { color: var(--text-secondary); }
+
   .q-text {
     font-size: clamp(20px, 3vw, 28px);
     font-weight: 600;
@@ -1203,6 +1206,7 @@
       <div class="domain-pill" data-domain="Psychology" onclick="filterScales('Psychology', this)">Psychology</div>
       <div class="domain-pill" data-domain="Marketing" onclick="filterScales('Marketing', this)">Marketing</div>
       <div class="domain-pill" data-domain="Education" onclick="filterScales('Education', this)">Education</div>
+      <div class="domain-pill" data-domain="Demographics" onclick="filterScales('Demographics', this)">Demographics</div>
     </div>
 
     <div class="scale-grid" id="scale-grid"></div>
@@ -1740,6 +1744,76 @@ const SCALE_LIBRARY = [
     likert_labels: ['Def. False','Mostly False','Somewhat False','Slightly False','Slightly True','Somewhat True','Mostly True','Def. True'],
     likert_points: 8,
   },
+  {
+    id: 19, abbr: 'SDQ', name: 'Sociodemographic Survey', domain: 'Demographics',
+    items_count: 56, response_format: 'Mixed', demographic: true,
+    items: [
+      // Personal Characteristics
+      { num:1,  text:'How old are you?', dim:'Personal', dtype:'number', placeholder:'Age in completed years' },
+      { num:2,  text:'What is your biological sex?', dim:'Personal', dtype:'choice', optional:true, options:['Male','Female','Intersex','Prefer not to say'] },
+      { num:3,  text:'What is your gender identity?', dim:'Personal', dtype:'choice', optional:true, options:['Man','Woman','Non-binary','Genderqueer','Transgender man','Transgender woman','Gender fluid','Agender','Prefer to self-describe','Prefer not to say'] },
+      { num:4,  text:'What is your sexual orientation?', dim:'Personal', dtype:'choice', optional:true, options:['Heterosexual / Straight','Gay / Lesbian','Bisexual','Pansexual','Asexual','Queer','Prefer to self-describe','Prefer not to say'] },
+      { num:5,  text:'What is your racial or ethnic identity? (Select all that apply — adapt options to your study context)', dim:'Personal', dtype:'open', optional:true, placeholder:'e.g. South Asian, Arab, White British…' },
+      { num:6,  text:'What is your nationality or country of citizenship?', dim:'Personal', dtype:'open', placeholder:'Country name' },
+      { num:7,  text:'In which country do you currently reside?', dim:'Personal', dtype:'open', placeholder:'Country name' },
+      { num:8,  text:'What is your native language (first language learned at home)?', dim:'Personal', dtype:'open', placeholder:'Language name' },
+      { num:9,  text:'What is your religious affiliation or belief system?', dim:'Personal', dtype:'choice', optional:true, options:['Christianity','Islam','Hinduism','Buddhism','Sikhism','Judaism','No religion','Atheist','Agnostic','Spiritual but not religious','Other / Prefer not to say'] },
+      { num:10, text:'How religious or spiritual do you consider yourself?', dim:'Personal', dtype:'choice', options:['Not at all','Slightly','Moderately','Very','Extremely'] },
+      // Socioeconomic Status
+      { num:11, text:'What is the highest level of formal education you have completed?', dim:'Socioeconomic', dtype:'choice', options:['No formal schooling','Primary / Elementary school','Some secondary school','Secondary school diploma','Vocational / Technical certificate','Some college, no degree','Bachelor\'s degree','Master\'s degree','Doctoral / Professional degree'] },
+      { num:12, text:'What is your current employment status?', dim:'Socioeconomic', dtype:'choice', options:['Employed full-time','Employed part-time','Self-employed','Unemployed, seeking work','Student only','Retired','Homemaker','Unable to work (disability)','Other'] },
+      { num:13, text:'What is your primary type of employment arrangement?', dim:'Socioeconomic', dtype:'choice', options:['Permanent / Regular employee','Contractual / Fixed-term','Freelance / Gig worker','Consultant','Volunteer','Apprentice / Intern','Other'] },
+      { num:14, text:'On average, how many hours per week do you work in paid employment?', dim:'Socioeconomic', dtype:'choice', options:['None','1–15 hours','16–24 hours','25–34 hours','35–40 hours','41–50 hours','More than 50 hours'] },
+      { num:15, text:'What is your approximate annual household income compared to others in your country?', dim:'Socioeconomic', dtype:'choice', options:['Well below average','Below average','Around average','Above average','Well above average','Prefer not to say'] },
+      { num:16, text:'Imagine a ladder where the top (10) is the highest socioeconomic status and the bottom (1) is the lowest in your country. Where do you place yourself?', dim:'Socioeconomic', dtype:'scale10' },
+      { num:17, text:'What is your primary occupational category?', dim:'Socioeconomic', dtype:'choice', options:['Management / Executive','Professional (doctor, lawyer, engineer)','Technical / Associate professional','Clerical / Administrative','Sales / Service worker','Skilled trade / Craft worker','Unskilled / Manual worker','Agricultural worker','Student','Homemaker','Retired','Other'] },
+      { num:18, text:'What is your approximate monthly personal income compared to others in your country?', dim:'Socioeconomic', dtype:'choice', options:['Well below average','Below average','Around average','Above average','Well above average','Prefer not to say'] },
+      // Family & Social Structure
+      { num:19, text:'What is your current marital or relationship status?', dim:'Family', dtype:'choice', options:['Single, never married','Married / Civil union','Committed relationship, not married','Separated','Divorced','Widowed','Prefer not to say'] },
+      { num:20, text:'Do you have children? If yes, how many?', dim:'Family', dtype:'choice', options:['No children','1 child','2 children','3 children','4 or more children'] },
+      { num:21, text:'How many people currently live in your household, including yourself?', dim:'Family', dtype:'number', placeholder:'Number of people' },
+      { num:22, text:'What best describes your current living situation?', dim:'Family', dtype:'choice', options:['Living alone','With spouse / partner only','With spouse / partner and children','With children only (single parent)','With parents / family','With roommates','Student accommodation','Other'] },
+      { num:23, text:'Are you the primary caregiver for any dependents (children, elderly, or disabled relatives)?', dim:'Family', dtype:'choice', options:['No','Yes — for children','Yes — for elderly / disabled family member','Yes — multiple types of dependents'] },
+      { num:24, text:'What is your birth order among your siblings?', dim:'Family', dtype:'choice', options:['Only child','Oldest','Middle','Youngest'] },
+      { num:25, text:'What is the highest level of education completed by either of your parents or primary guardians?', dim:'Family', dtype:'choice', options:['No formal schooling','Primary school','Secondary school','Vocational / Technical','Bachelor\'s degree','Postgraduate degree','Prefer not to say'] },
+      { num:26, text:'How many siblings do you have (not including yourself)? Enter 0 if only child.', dim:'Family', dtype:'number', placeholder:'Number of siblings' },
+      // Professional Context
+      { num:27, text:'What is your current job title or position?', dim:'Professional', dtype:'open', placeholder:'e.g. Research Associate, Lecturer…' },
+      { num:28, text:'What is your hierarchical level within your organization?', dim:'Professional', dtype:'choice', options:['Entry-level','Junior professional','Mid-level professional','Senior professional','First-line supervisor / Manager','Middle manager','Senior manager / Head of department','Director','Executive / C-suite','Owner / Founder'] },
+      { num:29, text:'In which industry or sector do you primarily work?', dim:'Professional', dtype:'choice', options:['Agriculture / Fishing','Mining / Energy','Manufacturing','Construction','Wholesale / Retail trade','Transportation / Logistics','Finance / Banking / Insurance','IT / Telecommunications','Healthcare / Social work','Education','Government / Public administration','Nonprofit / NGO','Media / Entertainment','Hospitality / Tourism','Other'] },
+      { num:30, text:'Approximately how many employees work in your organization across all locations?', dim:'Professional', dtype:'choice', options:['1–9','10–49','50–249','250–999','1,000–4,999','5,000 or more','Not applicable'] },
+      { num:31, text:'Is your organization primarily in which sector?', dim:'Professional', dtype:'choice', options:['Public / Government','Private / For-profit','Nonprofit / NGO','Social enterprise / Hybrid','Other'] },
+      { num:32, text:'How long have you been working for your current organization?', dim:'Professional', dtype:'choice', options:['Less than 6 months','6 months – 1 year','1–3 years','4–6 years','7–10 years','More than 10 years'] },
+      { num:33, text:'How long have you been in your current role or position?', dim:'Professional', dtype:'choice', options:['Less than 6 months','6 months – 1 year','1–3 years','4–6 years','7–10 years','More than 10 years'] },
+      { num:34, text:'What is your current work arrangement?', dim:'Professional', dtype:'choice', options:['Fully on-site','Mostly on-site, occasional remote','Hybrid — roughly equal split','Mostly remote','Fully remote'] },
+      { num:35, text:'Do you have direct supervisory or managerial responsibilities over other employees?', dim:'Professional', dtype:'choice', options:['No supervisory responsibilities','Yes — 1–5 direct reports','Yes — 6–15 direct reports','Yes — 16–30 direct reports','Yes — more than 30 direct reports'] },
+      { num:36, text:'How many total years of paid professional work experience do you have?', dim:'Professional', dtype:'choice', options:['Less than 1 year','1–5 years','6–10 years','11–20 years','More than 20 years'] },
+      { num:37, text:'What is the nature of your primary employment relationship?', dim:'Professional', dtype:'choice', options:['Direct permanent employee','Fixed-term / Contract employee','Consultant / External contractor','Temporary / Seasonal worker','Agency worker','Other'] },
+      // Health & Wellbeing
+      { num:38, text:'In general, how would you rate your overall physical health?', dim:'Health', dtype:'choice', options:['Poor','Fair','Good','Very good','Excellent'] },
+      { num:39, text:'In general, how would you rate your overall mental or emotional health?', dim:'Health', dtype:'choice', options:['Poor','Fair','Good','Very good','Excellent'] },
+      { num:40, text:'Do you have any diagnosed physical disability or chronic health condition that substantially limits daily activities?', dim:'Health', dtype:'choice', optional:true, options:['No','Yes, prefer not to specify','Yes — please specify if comfortable'] },
+      { num:41, text:'Have you ever been diagnosed with a mental health condition by a qualified professional?', dim:'Health', dtype:'choice', optional:true, options:['No','Yes','Prefer not to say'] },
+      { num:42, text:'On average, how many days per week do you engage in at least 30 minutes of moderate to vigorous physical activity?', dim:'Health', dtype:'choice', options:['0 days','1–2 days','3–4 days','5–7 days'] },
+      // Academic Context
+      { num:43, text:'Are you currently enrolled in a formal educational or training programme?', dim:'Academic', dtype:'choice', options:['No','Yes — full-time','Yes — part-time'] },
+      { num:44, text:'What is your current year or level of study?', dim:'Academic', dtype:'choice', options:['1st year','2nd year','3rd year','4th year','5th year or beyond','Postgraduate — taught','Postgraduate — research','Not currently enrolled'] },
+      { num:45, text:'What is your primary academic discipline or field of study?', dim:'Academic', dtype:'choice', options:['Arts & Humanities','Social Sciences','Business & Management','Engineering & Technology','Natural Sciences','Health & Medical Sciences','Law','Education','Architecture & Design','Agriculture','Other'] },
+      { num:46, text:'What type of educational institution do you currently attend or most recently attended?', dim:'Academic', dtype:'choice', options:['Public university','Private university','Community / Junior college','Vocational / Technical school','Online / Distance learning institution','International / Foreign institution','Other'] },
+      { num:47, text:'Are you a first-generation university student (neither parent completed a four-year university degree)?', dim:'Academic', dtype:'choice', options:['Yes','No','Prefer not to say'] },
+      { num:48, text:'What is your current or most recent academic performance standing?', dim:'Academic', dtype:'choice', options:['Below average','Average','Above average','Distinction / Honours','Prefer not to say'] },
+      // Cultural & Regional
+      { num:49, text:'What type of area do you primarily live in?', dim:'Cultural', dtype:'choice', options:['Urban — major city','Urban — mid-sized city','Suburban','Semi-urban / Small town','Rural / Village'] },
+      { num:50, text:'Which geographic region, province, or state do you currently live in?', dim:'Cultural', dtype:'open', placeholder:'Region / Province / State' },
+      { num:51, text:'What is your immigration or generational background in your current country of residence?', dim:'Cultural', dtype:'choice', optional:true, options:['Native-born, no immigrant family background','Second generation (at least one parent born abroad)','First generation (I was born abroad and immigrated)','Third generation or beyond','Other','Prefer not to say'] },
+      { num:52, text:'How long have you lived in your current country of residence?', dim:'Cultural', dtype:'choice', options:['All my life','More than 10 years','6–10 years','1–5 years','Less than 1 year'] },
+      // Technology & Digital Access
+      { num:53, text:'How would you rate your overall digital or technology skills?', dim:'Technology', dtype:'choice', options:['Very poor','Poor','Average','Good','Very good','Expert'] },
+      { num:54, text:'Approximately how many hours per day do you spend actively using social media?', dim:'Technology', dtype:'choice', options:['None','Less than 1 hour','1–2 hours','3–4 hours','5 hours or more'] },
+      { num:55, text:'Which social media platforms do you actively use at least once per week?', dim:'Technology', dtype:'multicheck', optional:true, options:['Facebook','Instagram','X / Twitter','TikTok','LinkedIn','YouTube','WhatsApp','Snapchat','Pinterest','Reddit','Threads','Other'] },
+      { num:56, text:'What device do you most frequently use to access the internet?', dim:'Technology', dtype:'choice', options:['Smartphone','Tablet','Laptop computer','Desktop computer','Smart TV','Wearable device','Other'] },
+    ],
+  },
 ]
 
 // =====================================================================
@@ -2085,19 +2159,35 @@ function buildQuestionList(cfg) {
     const scale = SCALE_LIBRARY.find(s => s.id === id)
     if (!scale) continue
     for (const item of scale.items) {
-      qs.push({
-        type: 'likert',
-        scaleAbbr: scale.abbr,
-        scaleName: scale.name,
-        scaleId: scale.id,
-        itemNum: item.num,
-        text: item.text,
-        preamble: scale.preamble || null,
-        dim: item.dim || null,
-        reversed: item.reversed || false,
-        likert_points: scale.likert_points,
-        likert_labels: scale.likert_labels,
-      })
+      if (scale.demographic) {
+        qs.push({
+          type: 'demographic',
+          scaleAbbr: scale.abbr,
+          scaleName: scale.name,
+          scaleId: scale.id,
+          itemNum: item.num,
+          text: item.text,
+          dim: item.dim || null,
+          dtype: item.dtype,
+          options: item.options || null,
+          placeholder: item.placeholder || null,
+          optional: item.optional || false,
+        })
+      } else {
+        qs.push({
+          type: 'likert',
+          scaleAbbr: scale.abbr,
+          scaleName: scale.name,
+          scaleId: scale.id,
+          itemNum: item.num,
+          text: item.text,
+          preamble: scale.preamble || null,
+          dim: item.dim || null,
+          reversed: item.reversed || false,
+          likert_points: scale.likert_points,
+          likert_labels: scale.likert_labels,
+        })
+      }
     }
   }
   // Custom questions
@@ -2146,6 +2236,10 @@ function renderQuestion(idx) {
     labelEl.textContent = `${q.scaleAbbr} — ${q.scaleName}${q.dim ? ' · ' + q.dim : ''}`
     textEl.textContent = (q.preamble ? q.preamble + '\n\n' : '') + q.text
     inputEl.innerHTML = renderLikert(idx, q)
+  } else if (q.type === 'demographic') {
+    labelEl.textContent = `SDQ — Sociodemographic${q.dim ? ' · ' + q.dim : ''}${q.optional ? ' · Optional' : ''}`
+    textEl.textContent = q.text
+    inputEl.innerHTML = renderDemographic(idx, q)
   } else if (q.type === 'custom') {
     labelEl.textContent = 'Your Response'
     textEl.textContent = q.text
@@ -2170,6 +2264,50 @@ function renderLikert(idx, q) {
   }
   html += '</div>'
   return html
+}
+
+function renderDemographic(idx, q) {
+  const val = state.session.answers[idx]
+  if (q.dtype === 'number') {
+    return `<div class="number-wrap"><input type="number" min="0" placeholder="${q.placeholder || '0'}" value="${val !== undefined && val !== null ? val : ''}" oninput="setAnswer(${idx}, this.value !== '' ? parseFloat(this.value) : null)"></div>`
+  }
+  if (q.dtype === 'open') {
+    return `<div class="open-wrap"><textarea rows="3" placeholder="${q.placeholder || 'Type your answer…'}" oninput="setAnswer(${idx}, this.value)">${val || ''}</textarea></div>`
+  }
+  if (q.dtype === 'scale10') {
+    const opts = Array.from({length:10}, (_,i) => i+1)
+    return `<div class="choice-grid" style="grid-template-columns:repeat(5,1fr); max-width:480px;">${opts.map(v =>
+      `<div class="choice-opt${val===v?' selected':''}" onclick="selectDemoOpt(${idx},${v},this)" style="text-align:center;font-size:20px;font-weight:700;">${v}</div>`
+    ).join('')}</div><div style="display:flex;justify-content:space-between;max-width:480px;margin-top:8px;font-size:12px;color:var(--text-secondary);"><span>Far below average</span><span>Far above average</span></div>`
+  }
+  if (q.dtype === 'multicheck') {
+    const vals = Array.isArray(val) ? val : []
+    return `<div class="choice-grid">${q.options.map(opt =>
+      `<div class="choice-opt${vals.includes(opt)?' selected':''}" onclick="toggleMultiCheck(${idx},'${opt.replace(/'/g,"\\'")}',this)">${opt}</div>`
+    ).join('')}</div><div style="margin-top:10px;font-size:12px;color:var(--text-secondary);">Select all that apply${q.optional ? ' · Optional' : ''}</div>`
+  }
+  // default: choice
+  return `<div class="choice-grid">${(q.options || []).map(opt =>
+    `<div class="choice-opt${val===opt?' selected':''}" onclick="selectDemoOpt(${idx},'${opt.replace(/'/g,"\\'")}',this)">${opt}</div>`
+  ).join('')}</div>`
+}
+
+function selectDemoOpt(idx, val, el) {
+  state.session.answers[idx] = val
+  el.closest('.choice-grid').querySelectorAll('.choice-opt').forEach(e => e.classList.remove('selected'))
+  el.classList.add('selected')
+  updateNextBtn(idx)
+}
+
+function toggleMultiCheck(idx, val, el) {
+  let current = state.session.answers[idx]
+  if (!Array.isArray(current)) current = []
+  const i = current.indexOf(val)
+  if (i === -1) current.push(val)
+  else current.splice(i, 1)
+  state.session.answers[idx] = [...current]
+  el.classList.toggle('selected', current.includes(val))
+  updateNextBtn(idx)
 }
 
 function renderCustomInput(idx, q) {
@@ -2228,6 +2366,19 @@ function updateNextBtn(idx) {
   let answered = false
   if (q.type === 'likert' || q.type === 'likert5' || q.type === 'likert7') {
     answered = ans !== undefined && ans !== null
+  } else if (q.type === 'demographic') {
+    // Optional items are always skippable; required ones need a response
+    if (q.optional) {
+      answered = true
+    } else if (q.dtype === 'number') {
+      answered = ans !== undefined && ans !== null && ans !== ''
+    } else if (q.dtype === 'open') {
+      answered = typeof ans === 'string' && ans.trim().length > 0
+    } else if (q.dtype === 'multicheck') {
+      answered = true // always skippable (select-all type)
+    } else {
+      answered = ans !== undefined && ans !== null
+    }
   } else if (q.type === 'open') {
     answered = typeof ans === 'string' && ans.trim().length > 0
   } else if (q.type === 'number') {
