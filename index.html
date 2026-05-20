@@ -1,0 +1,2525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadence — Survey research, conducted beautifully.</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F5F7;
+    --surface: #FFFFFF;
+    --surface2: #F0F0F2;
+    --accent: #0071E3;
+    --accent-dark: #0058B0;
+    --accent-light: #E8F0FD;
+    --text: #1D1D1F;
+    --text-secondary: #6E6E73;
+    --text-tertiary: #AEAEB2;
+    --border: #D2D2D7;
+    --success: #34C759;
+    --warning: #FF9F0A;
+    --danger: #FF3B30;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+    --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- SCREENS ---- */
+  .screen {
+    display: none;
+    min-height: 100vh;
+    width: 100%;
+  }
+  .screen.active { display: flex; }
+
+  /* ---- LANDING ---- */
+  #screen-landing {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #F5F5F7 0%, #E8F0FD 50%, #F5F5F7 100%);
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  .landing-logo {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .landing-hero {
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--text);
+    max-width: 700px;
+    margin-bottom: 20px;
+  }
+
+  .landing-hero span { color: var(--accent); }
+
+  .landing-sub {
+    font-size: 19px;
+    color: var(--text-secondary);
+    max-width: 460px;
+    line-height: 1.5;
+    margin-bottom: 48px;
+  }
+
+  .landing-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 980px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s ease;
+    text-decoration: none;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,113,227,0.3); }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--surface2); transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--accent);
+    padding: 10px 20px;
+  }
+  .btn-ghost:hover { background: var(--accent-light); }
+
+  .btn-sm {
+    padding: 9px 18px;
+    font-size: 13px;
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* ---- BUILDER ---- */
+  #screen-builder {
+    flex-direction: column;
+    background: var(--bg);
+  }
+
+  .builder-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .builder-nav-brand {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .builder-steps {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+  }
+  .step-dot.active { background: var(--accent); transform: scale(1.3); }
+  .step-dot.done { background: var(--success); }
+
+  .builder-body {
+    flex: 1;
+    padding: 48px 24px;
+    max-width: 760px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .builder-section-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .builder-section-sub {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 36px;
+    line-height: 1.5;
+  }
+
+  /* ---- FORM ELEMENTS ---- */
+  .field {
+    margin-bottom: 24px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .field input, .field textarea, .field select {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 15px;
+    font-family: var(--font);
+    transition: border-color 0.18s;
+    outline: none;
+    appearance: none;
+  }
+
+  .field input:focus, .field textarea:focus, .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,113,227,0.12);
+  }
+
+  .field textarea { min-height: 80px; resize: vertical; }
+
+  /* ---- SCALE PICKER ---- */
+  .scale-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .scale-card {
+    padding: 16px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.18s;
+    position: relative;
+  }
+
+  .scale-card:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+
+  .scale-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .scale-card-check {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: transparent;
+    transition: all 0.18s;
+  }
+
+  .scale-card.selected .scale-card-check {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .scale-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .scale-card-abbr {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .scale-card-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .scale-domain-filter {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .domain-pill {
+    padding: 6px 14px;
+    border-radius: 980px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    transition: all 0.18s;
+  }
+
+  .domain-pill.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  /* ---- CUSTOM QUESTIONS ---- */
+  .custom-q-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .custom-q-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+  }
+
+  .custom-q-item .cq-text {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .custom-q-item .cq-type {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--surface2);
+  }
+
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    font-size: 16px;
+  }
+
+  .icon-btn:hover { background: var(--surface2); color: var(--danger); }
+
+  /* ---- REVIEW SCREEN ---- */
+  #screen-review {
+    flex-direction: column;
+    background: var(--bg);
+  }
+
+  .review-body {
+    flex: 1;
+    padding: 48px 24px;
+    max-width: 760px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .review-summary-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+  }
+
+  .review-stat-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .review-stat {
+    text-align: center;
+  }
+
+  .review-stat-val {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    display: block;
+  }
+
+  .review-stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .review-q-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 6px;
+  }
+
+  .review-q-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--bg);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .review-q-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    min-width: 28px;
+  }
+
+  .review-q-scale {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  .code-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-light);
+    border: 1.5px dashed var(--accent);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    user-select: all;
+    margin-top: 12px;
+  }
+
+  /* ---- DONE ---- */
+  #screen-study-done {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+    background: var(--bg);
+  }
+
+  .done-icon {
+    font-size: 72px;
+    margin-bottom: 24px;
+  }
+
+  .done-title {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+
+  .done-sub {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 380px;
+    line-height: 1.5;
+    margin-bottom: 36px;
+  }
+
+  /* ---- JOIN SCREEN ---- */
+  #screen-join {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  .join-card {
+    background: var(--surface);
+    border-radius: 24px;
+    padding: 48px 40px;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .join-study-name {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .join-study-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    line-height: 1.5;
+  }
+
+  .wave-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 980px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 24px;
+  }
+
+  /* ---- INTRO SCREEN ---- */
+  #screen-intro {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  .intro-body {
+    max-width: 500px;
+  }
+
+  .intro-time-chips {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 24px 0;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px;
+    border-radius: 980px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  /* ---- SURVEY SCREEN ---- */
+  #screen-survey {
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--bg);
+  }
+
+  .survey-top {
+    padding: 20px 32px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .survey-top-back {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.18s;
+    flex-shrink: 0;
+  }
+  .survey-top-back:hover { background: var(--surface2); transform: scale(1.05); }
+
+  .survey-progress-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  .survey-progress-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .survey-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), #34AADC);
+    transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+
+  .survey-progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,113,227,0.2);
+  }
+
+  .survey-progress-label {
+    position: absolute;
+    right: 0;
+    top: -22px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+
+  .survey-q-counter {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-left: 4px;
+  }
+
+  /* ---- QUESTION DISPLAY ---- */
+  .survey-question-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px 80px;
+  }
+
+  .survey-q-wrap {
+    max-width: 640px;
+    width: 100%;
+    animation: slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-24px); }
+  }
+
+  .q-scale-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .q-text {
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    margin-bottom: 36px;
+  }
+
+  /* ---- LIKERT CHOICES ---- */
+  .likert-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .likert-opt {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.18s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .likert-opt:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    transform: translateX(4px);
+  }
+
+  .likert-opt.selected {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .likert-opt.selected .likert-key { color: rgba(255,255,255,0.7); }
+  .likert-opt.selected .likert-label { color: #fff; }
+
+  .likert-key {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    min-width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .likert-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  /* ---- OPEN TEXT ---- */
+  .open-wrap textarea {
+    width: 100%;
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+    font-family: var(--font);
+    outline: none;
+    resize: none;
+    min-height: 120px;
+    transition: border-color 0.18s;
+  }
+
+  .open-wrap textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,0.12); }
+
+  /* ---- NUMBER INPUT ---- */
+  .number-wrap input {
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 700;
+    font-family: var(--font);
+    outline: none;
+    width: 100%;
+    max-width: 240px;
+    text-align: center;
+    transition: border-color 0.18s;
+  }
+
+  .number-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,113,227,0.12); }
+
+  /* ---- CHOICE QUESTION ---- */
+  .choice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .choice-opt {
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    transition: all 0.18s;
+    text-align: center;
+  }
+
+  .choice-opt:hover { border-color: var(--accent); background: var(--accent-light); }
+  .choice-opt.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
+
+  /* ---- NAV HINT ---- */
+  .survey-nav-hint {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .nav-hint-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .key-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 24px;
+  }
+
+  .btn-next {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 980px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.18s;
+  }
+
+  .btn-next:hover { background: var(--accent-dark); transform: translateY(-1px); }
+  .btn-next:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  /* ---- MILESTONE ---- */
+  #screen-milestone {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at center, var(--accent-light) 0%, var(--bg) 70%);
+    padding: 40px 24px;
+    text-align: center;
+  }
+  #screen-milestone.active { display: flex; }
+
+  .milestone-emoji {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes pop {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .milestone-title {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .milestone-sub {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+  }
+
+  /* ---- COMPLETE ---- */
+  #screen-complete {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #F5F5F7 0%, #E8F0FD 50%, #F5F5F7 100%);
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  .complete-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #34AADC);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin: 0 auto 28px;
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 12px 40px rgba(0,113,227,0.3);
+  }
+
+  .complete-title {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 10px;
+  }
+
+  .complete-sub {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 380px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .wave-continue {
+    font-size: 14px;
+    color: var(--text-tertiary);
+    margin-bottom: 32px;
+    font-style: italic;
+  }
+
+  .complete-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  /* ---- DIVIDERS ---- */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  /* ---- ADD Q MODAL ---- */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(6px);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 24px;
+    padding: 36px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    animation: slideIn 0.25s ease;
+  }
+
+  .modal-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 28px;
+  }
+
+  /* ---- EXPORT MODAL ---- */
+  .export-section {
+    padding: 20px;
+    border-radius: var(--radius);
+    background: var(--bg);
+    margin-bottom: 16px;
+  }
+
+  .export-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+
+  .export-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .export-participant-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--surface);
+    font-size: 13px;
+  }
+
+  .export-code { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+  .export-wave { color: var(--text-secondary); }
+  .export-date { color: var(--text-tertiary); font-size: 11px; }
+
+  /* ---- TOOLTIPS / MISC ---- */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    background: var(--accent-light);
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 980px;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 9999;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-tertiary);
+  }
+
+  .empty-state-icon { font-size: 40px; margin-bottom: 10px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ---- SCROLLBARS ---- */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 600px) {
+    .builder-body, .review-body { padding: 28px 16px; }
+    .join-card { padding: 32px 24px; }
+    .survey-question-area { padding: 28px 16px 80px; }
+    .modal { padding: 24px; }
+    .scale-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ==================== LANDING ==================== -->
+<div class="screen active" id="screen-landing">
+  <div class="landing-logo">Cadence</div>
+  <div class="landing-hero">Survey research,<br><span>conducted beautifully.</span></div>
+  <div class="landing-sub">Design immersive questionnaires. Collect temporal waves. Export clean data — all from a single link.</div>
+  <div class="landing-actions">
+    <button class="btn btn-primary" onclick="goTo('builder')">Create a Study</button>
+    <button class="btn btn-secondary" onclick="showJoinPrompt()">Join a Study</button>
+  </div>
+</div>
+
+<!-- ==================== BUILDER STEP 1: STUDY INFO ==================== -->
+<div class="screen" id="screen-builder">
+  <nav class="builder-nav">
+    <div class="builder-nav-brand">Cadence</div>
+    <div class="builder-steps">
+      <div class="step-dot active" id="step-1"></div>
+      <div class="step-dot" id="step-2"></div>
+      <div class="step-dot" id="step-3"></div>
+      <div class="step-dot" id="step-4"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="goTo('landing')">Exit</button>
+  </nav>
+
+  <!-- Step 1 -->
+  <div class="builder-body" id="builder-step-1">
+    <div class="builder-section-title">Tell us about your study</div>
+    <div class="builder-section-sub">Give your study a name and description. Participants will see this before they begin.</div>
+
+    <div class="field">
+      <label>Study Name *</label>
+      <input type="text" id="study-name" placeholder="e.g. Wellbeing at Work — Wave 2" maxlength="80">
+    </div>
+
+    <div class="field">
+      <label>Study Description</label>
+      <textarea id="study-desc" placeholder="Brief description visible to participants (optional)"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Researcher / Institution</label>
+      <input type="text" id="study-researcher" placeholder="e.g. Dr. Aisha Khan, IIM Ahmedabad" maxlength="100">
+    </div>
+
+    <div class="field">
+      <label>Max Waves (temporal rounds)</label>
+      <select id="study-waves">
+        <option value="1">1 wave (cross-sectional)</option>
+        <option value="2">2 waves</option>
+        <option value="3" selected>3 waves</option>
+        <option value="4">4 waves</option>
+        <option value="6">6 waves</option>
+      </select>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:32px;">
+      <button class="btn btn-primary" onclick="builderNext(1)">Choose Scales →</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Scale Selection -->
+  <div class="builder-body" id="builder-step-2" style="display:none;">
+    <div class="builder-section-title">Add validated scales</div>
+    <div class="builder-section-sub">Select from the ScaleScope library. Items, response formats, and scoring are pre-loaded.</div>
+
+    <div class="scale-domain-filter" id="domain-filter">
+      <div class="domain-pill active" data-domain="All" onclick="filterScales('All', this)">All</div>
+      <div class="domain-pill" data-domain="Organizational Behaviour" onclick="filterScales('Organizational Behaviour', this)">Org Behaviour</div>
+      <div class="domain-pill" data-domain="Psychology" onclick="filterScales('Psychology', this)">Psychology</div>
+      <div class="domain-pill" data-domain="Marketing" onclick="filterScales('Marketing', this)">Marketing</div>
+      <div class="domain-pill" data-domain="Education" onclick="filterScales('Education', this)">Education</div>
+    </div>
+
+    <div class="scale-grid" id="scale-grid"></div>
+
+    <div style="display:flex; gap:12px; justify-content:space-between; margin-top:20px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="builderBack(2)">← Back</button>
+      <button class="btn btn-primary" onclick="builderNext(2)">Add Custom Questions →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Custom Questions -->
+  <div class="builder-body" id="builder-step-3" style="display:none;">
+    <div class="builder-section-title">Custom questions</div>
+    <div class="builder-section-sub">Add your own questions in addition to the validated scales. Demographics, open-ended, or anything else.</div>
+
+    <div class="custom-q-list" id="custom-q-list">
+      <div class="empty-state" id="cq-empty">
+        <div class="empty-state-icon">✏️</div>
+        <p>No custom questions yet. Add one below.</p>
+      </div>
+    </div>
+
+    <button class="btn btn-secondary" onclick="openAddQModal()" style="width:100%;">+ Add Question</button>
+
+    <div style="display:flex; gap:12px; justify-content:space-between; margin-top:32px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="builderBack(3)">← Back</button>
+      <button class="btn btn-primary" onclick="builderNext(3)">Review & Publish →</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Review -->
+  <div class="builder-body" id="builder-step-4" style="display:none;">
+    <div class="builder-section-title">Review your study</div>
+    <div class="builder-section-sub">Everything looks good? Share the link with participants.</div>
+
+    <div id="review-content"></div>
+
+    <div style="display:flex; gap:12px; justify-content:space-between; margin-top:32px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="builderBack(4)">← Back</button>
+      <button class="btn btn-primary" onclick="publishStudy()">Publish Study ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== STUDY DONE (researcher view) ==================== -->
+<div class="screen" id="screen-study-done">
+  <div style="max-width:520px; width:100%;">
+    <div class="done-icon">🎉</div>
+    <div class="done-title">Study Published!</div>
+    <div class="done-sub">Share the link below with participants. They'll use it to join and submit responses across waves.</div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">Participant Link</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" id="study-link-display" readonly style="flex:1; padding:12px 14px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface); font-size:13px; color:var(--text); font-family:var(--font); outline:none;">
+        <button class="btn btn-primary btn-sm" onclick="copyStudyLink()">Copy</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:28px;">
+      <div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">Study Code</div>
+      <div class="code-display" id="study-code-display" onclick="copyStudyCode()" title="Click to copy"></div>
+    </div>
+
+    <div class="done-sub" style="margin-bottom:20px; font-size:14px;">Participants enter this code or use the link. Each gets a unique 6-character participant code automatically.</div>
+
+    <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+      <button class="btn btn-secondary" onclick="openExportModal()">Export Data</button>
+      <button class="btn btn-primary" onclick="goTo('landing')">Create Another Study</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== JOIN SCREEN ==================== -->
+<div class="screen" id="screen-join">
+  <div class="join-card">
+    <div id="join-enter-code-view">
+      <div style="font-size:32px; font-weight:800; letter-spacing:-0.03em; margin-bottom:8px;">Join a Study</div>
+      <div style="font-size:14px; color:var(--text-secondary); margin-bottom:28px; line-height:1.5;">Enter the 6-character study code given by your researcher.</div>
+      <div class="field">
+        <label>Study Code</label>
+        <input type="text" id="join-study-code" placeholder="e.g. X7KR2M" maxlength="6" style="text-transform:uppercase; text-align:center; font-size:22px; font-weight:700; letter-spacing:0.1em;" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="field">
+        <label>Your Participant Code <span style="font-weight:400; text-transform:none; font-size:11px;">(leave blank if first time)</span></label>
+        <input type="text" id="join-participant-code" placeholder="e.g. AB12CD" maxlength="6" style="text-transform:uppercase; text-align:center; font-size:18px; font-weight:700; letter-spacing:0.1em;" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <button class="btn btn-primary" style="width:100%;" onclick="joinStudy()">Let's Begin →</button>
+      <button class="btn btn-ghost" style="width:100%; margin-top:8px;" onclick="goTo('landing')">Back</button>
+    </div>
+
+    <div id="join-study-info-view" style="display:none;">
+      <div class="wave-badge" id="join-wave-badge">Wave 1</div>
+      <div class="join-study-name" id="join-study-name-display">Study Name</div>
+      <div class="join-study-desc" id="join-study-desc-display"></div>
+      <div style="font-size:13px; color:var(--text-secondary); margin-bottom:4px;">Your participant code — save this:</div>
+      <div class="code-display" id="join-participant-code-display" onclick="copyParticipantCode()" title="Click to copy"></div>
+      <div style="font-size:12px; color:var(--text-tertiary); margin-top:8px; margin-bottom:28px;">You'll need this code to return for future waves.</div>
+      <button class="btn btn-primary" style="width:100%;" onclick="startSurvey()">Start Survey →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== INTRO (pre-survey) ==================== -->
+<div class="screen" id="screen-intro">
+  <div class="intro-body">
+    <div style="font-size:13px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">A few tips</div>
+    <div style="font-size:28px; font-weight:700; letter-spacing:-0.02em; margin-bottom:12px;">You've got this.</div>
+    <div style="font-size:15px; color:var(--text-secondary); line-height:1.6; margin-bottom:8px;">Answer each question honestly — there are no right or wrong answers. The survey adapts to you: one question at a time, no scrolling, no overwhelm.</div>
+    <div class="intro-time-chips">
+      <div class="chip">⏱ <span id="intro-time-estimate">~10 min</span></div>
+      <div class="chip">📊 <span id="intro-q-count">0 questions</span></div>
+      <div class="chip">🔒 Anonymous</div>
+    </div>
+    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:32px; line-height:1.5;">Use <strong>1–7</strong> keys or arrow keys to navigate. Press <strong>Enter</strong> or <strong>→</strong> to advance.</div>
+    <button class="btn btn-primary" style="font-size:17px; padding:16px 40px;" onclick="beginSurvey()">Begin →</button>
+  </div>
+</div>
+
+<!-- ==================== SURVEY ==================== -->
+<div class="screen" id="screen-survey">
+  <div class="survey-top">
+    <div class="survey-top-back" onclick="surveyBack()" title="Previous question">←</div>
+    <div class="survey-progress-wrap">
+      <div class="survey-progress-label" id="progress-label">0%</div>
+      <div class="survey-progress-track">
+        <div class="survey-progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="survey-q-counter" id="q-counter">1 / 1</div>
+  </div>
+
+  <div class="survey-question-area">
+    <div class="survey-q-wrap" id="q-wrap">
+      <div class="q-scale-label" id="q-scale-label"></div>
+      <div class="q-text" id="q-text"></div>
+      <div id="q-input-area"></div>
+    </div>
+  </div>
+
+  <div class="survey-nav-hint">
+    <div class="nav-hint-item"><span class="key-badge">1–7</span> Select</div>
+    <div class="nav-hint-item"><span class="key-badge">↵</span> Next</div>
+    <div class="nav-hint-item"><span class="key-badge">←</span> Back</div>
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>Next <span style="font-size:16px;">→</span></button>
+  </div>
+</div>
+
+<!-- ==================== MILESTONE ==================== -->
+<div class="screen" id="screen-milestone">
+  <div class="milestone-emoji" id="milestone-emoji">🎯</div>
+  <div class="milestone-title" id="milestone-title">Quarter way there!</div>
+  <div class="milestone-sub" id="milestone-sub">You're doing great. Keep going!</div>
+  <button class="btn btn-primary" style="margin-top:8px;" onclick="resumeSurvey()">Keep Going →</button>
+</div>
+
+<!-- ==================== COMPLETE ==================== -->
+<div class="screen" id="screen-complete">
+  <div class="complete-circle">✓</div>
+  <div class="complete-title">Wave complete!</div>
+  <div class="complete-sub" id="complete-sub">Your responses have been saved locally. Thank you for participating.</div>
+  <div class="wave-continue" id="wave-continue-note"></div>
+  <div class="complete-actions">
+    <button class="btn btn-secondary" onclick="downloadMyData()">Download My Data (JSON)</button>
+    <button class="btn btn-primary" onclick="goTo('landing')">Done</button>
+  </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Add Question Modal -->
+<div class="modal-overlay" id="add-q-modal">
+  <div class="modal">
+    <div class="modal-title">Add a Question</div>
+    <div class="field">
+      <label>Question Text *</label>
+      <textarea id="new-q-text" placeholder="Enter your question here..."></textarea>
+    </div>
+    <div class="field">
+      <label>Question Type</label>
+      <select id="new-q-type" onchange="onQTypeChange()">
+        <option value="likert5">Likert Scale (1–5)</option>
+        <option value="likert7">Likert Scale (1–7)</option>
+        <option value="open">Open Text</option>
+        <option value="number">Number / Age / Year</option>
+        <option value="choice">Multiple Choice</option>
+      </select>
+    </div>
+    <div id="new-q-extra"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeAddQModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addCustomQ()">Add Question</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="export-modal">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-title">Export Study Data</div>
+    <div id="export-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeExportModal()">Close</button>
+      <button class="btn btn-primary" onclick="exportXLSX()">Download Excel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SCRIPT ==================== -->
+<script>
+// =====================================================================
+//  EMBEDDED SCALE LIBRARY (curated from ScaleScope)
+// =====================================================================
+const SCALE_LIBRARY = [
+  {
+    id: 1, abbr: 'UWES-9', name: 'Work Engagement', domain: 'Organizational Behaviour',
+    items_count: 9, response_format: '7-point Likert',
+    anchors: ['0 = Never', '6 = Always'],
+    items: [
+      { num:1, text:'At my work, I feel bursting with energy.', dim:'Vigor' },
+      { num:2, text:'At my job, I feel strong and vigorous.', dim:'Vigor' },
+      { num:3, text:'When I get up in the morning, I feel like going to work.', dim:'Vigor' },
+      { num:4, text:'I am enthusiastic about my job.', dim:'Dedication' },
+      { num:5, text:'My job inspires me.', dim:'Dedication' },
+      { num:6, text:'I am proud of the work that I do.', dim:'Dedication' },
+      { num:7, text:'I feel happy when I am working intensely.', dim:'Absorption' },
+      { num:8, text:'I am immersed in my work.', dim:'Absorption' },
+      { num:9, text:'I get carried away when I am working.', dim:'Absorption' },
+    ],
+    likert_labels: ['Never','Almost Never','Rarely','Sometimes','Often','Very Often','Always'],
+    likert_points: 7,
+  },
+  {
+    id: 2, abbr: 'MBI-GS', name: 'Burnout', domain: 'Organizational Behaviour',
+    items_count: 16, response_format: '7-point Likert',
+    anchors: ['0 = Never', '6 = Always'],
+    items: [
+      { num:1, text:'I feel emotionally drained from my work.', dim:'Exhaustion' },
+      { num:2, text:'I feel used up at the end of the workday.', dim:'Exhaustion' },
+      { num:3, text:'I feel tired when I get up in the morning and have to face another day on the job.', dim:'Exhaustion' },
+      { num:4, text:'Working all day is really a strain for me.', dim:'Exhaustion' },
+      { num:5, text:'I can effectively solve the problems that arise in my work.', dim:'Efficacy', reversed:true },
+      { num:6, text:'I feel burned out from my work.', dim:'Exhaustion' },
+      { num:7, text:'I feel I am making an effective contribution to what this organisation does.', dim:'Efficacy', reversed:true },
+      { num:8, text:'I have become less interested in my work since I started this job.', dim:'Cynicism' },
+      { num:9, text:'I have become less enthusiastic about my work.', dim:'Cynicism' },
+      { num:10, text:'In my opinion I am good at my job.', dim:'Efficacy', reversed:true },
+      { num:11, text:'I feel exhilarated when I accomplish something at work.', dim:'Efficacy', reversed:true },
+      { num:12, text:'I have accomplished many worthwhile things in this job.', dim:'Efficacy', reversed:true },
+      { num:13, text:'I just want to do my job and not be bothered.', dim:'Cynicism' },
+      { num:14, text:'I have become more cynical about whether my work contributes anything.', dim:'Cynicism' },
+      { num:15, text:'I doubt the significance of my work.', dim:'Cynicism' },
+      { num:16, text:'At my work, I feel confident that I am effective at getting things done.', dim:'Efficacy', reversed:true },
+    ],
+    likert_labels: ['Never','Almost Never','Rarely','Sometimes','Often','Very Often','Always'],
+    likert_points: 7,
+  },
+  {
+    id: 3, abbr: 'PSS-10', name: 'Perceived Stress', domain: 'Psychology',
+    items_count: 10, response_format: '5-point Likert',
+    anchors: ['0 = Never', '4 = Very Often'],
+    items: [
+      { num:1, text:'In the last month, how often have you been upset because of something that happened unexpectedly?' },
+      { num:2, text:'In the last month, how often have you felt that you were unable to control the important things in your life?' },
+      { num:3, text:'In the last month, how often have you felt nervous and stressed?' },
+      { num:4, text:'In the last month, how often have you felt confident about your ability to handle your personal problems?', reversed:true },
+      { num:5, text:'In the last month, how often have you felt that things were going your way?', reversed:true },
+      { num:6, text:'In the last month, how often have you been able to control irritations in your life?', reversed:true },
+      { num:7, text:'In the last month, how often have you felt that you were on top of things?', reversed:true },
+      { num:8, text:'In the last month, how often have you been angered because of things that happened that were outside your control?' },
+      { num:9, text:'In the last month, how often have you felt difficulties were piling up so high that you could not overcome them?' },
+      { num:10, text:'In the last month, how often have you been able to control the way you spend your time?', reversed:true },
+    ],
+    likert_labels: ['Never','Almost Never','Sometimes','Fairly Often','Very Often'],
+    likert_points: 5,
+  },
+  {
+    id: 4, abbr: 'SWLS', name: 'Life Satisfaction', domain: 'Psychology',
+    items_count: 5, response_format: '7-point Likert',
+    anchors: ['1 = Strongly Disagree', '7 = Strongly Agree'],
+    items: [
+      { num:1, text:'In most ways my life is close to my ideal.' },
+      { num:2, text:'The conditions of my life are excellent.' },
+      { num:3, text:'I am satisfied with my life.' },
+      { num:4, text:'So far I have gotten the important things I want in life.' },
+      { num:5, text:'If I could live my life over, I would change almost nothing.' },
+    ],
+    likert_labels: ['Strongly Disagree','Disagree','Slightly Disagree','Neither','Slightly Agree','Agree','Strongly Agree'],
+    likert_points: 7,
+  },
+  {
+    id: 5, abbr: 'GSE', name: 'General Self-Efficacy', domain: 'Psychology',
+    items_count: 10, response_format: '4-point Likert',
+    anchors: ['1 = Not at all true', '4 = Exactly true'],
+    items: [
+      { num:1, text:'I can always manage to solve difficult problems if I try hard enough.' },
+      { num:2, text:'If someone opposes me, I can find the means and ways to get what I want.' },
+      { num:3, text:'It is easy for me to stick to my aims and accomplish my goals.' },
+      { num:4, text:'I am confident that I could deal efficiently with unexpected events.' },
+      { num:5, text:'Thanks to my resourcefulness, I know how to handle unforeseen situations.' },
+      { num:6, text:'I can solve most problems if I invest the necessary effort.' },
+      { num:7, text:'I can remain calm when facing difficulties because I can rely on my coping abilities.' },
+      { num:8, text:'When I am confronted with a problem, I can usually find several solutions.' },
+      { num:9, text:'If I am in trouble, I can usually think of a solution.' },
+      { num:10, text:'I can usually handle whatever comes my way.' },
+    ],
+    likert_labels: ['Not at all true','Hardly true','Moderately true','Exactly true'],
+    likert_points: 4,
+  },
+  {
+    id: 6, abbr: 'RSES', name: 'Self-Esteem', domain: 'Psychology',
+    items_count: 10, response_format: '4-point Likert',
+    anchors: ['1 = Strongly Disagree', '4 = Strongly Agree'],
+    items: [
+      { num:1, text:'I feel that I am a person of worth, at least on an equal plane with others.' },
+      { num:2, text:'I feel that I have a number of good qualities.' },
+      { num:3, text:'All in all, I am inclined to feel that I am a failure.', reversed:true },
+      { num:4, text:'I am able to do things as well as most other people.' },
+      { num:5, text:'I feel I do not have much to be proud of.', reversed:true },
+      { num:6, text:'I take a positive attitude toward myself.' },
+      { num:7, text:'On the whole, I am satisfied with myself.' },
+      { num:8, text:'I wish I could have more respect for myself.', reversed:true },
+      { num:9, text:'I certainly feel useless at times.', reversed:true },
+      { num:10, text:'At times I think I am no good at all.', reversed:true },
+    ],
+    likert_labels: ['Strongly Disagree','Disagree','Agree','Strongly Agree'],
+    likert_points: 4,
+  },
+  {
+    id: 7, abbr: 'Grit-S', name: 'Grit', domain: 'Psychology',
+    items_count: 8, response_format: '5-point Likert',
+    anchors: ['1 = Not at all like me', '5 = Very much like me'],
+    items: [
+      { num:1, text:'New ideas and projects sometimes distract me from previous ones.', reversed:true, dim:'Consistency of Interest' },
+      { num:2, text:'Setbacks don\'t discourage me. I bounce back from failure.', dim:'Perseverance' },
+      { num:3, text:'I have been obsessed with a certain idea or project for a short time but later lost interest.', reversed:true, dim:'Consistency of Interest' },
+      { num:4, text:'I am a hard worker.', dim:'Perseverance' },
+      { num:5, text:'I often set a goal but later choose to pursue a different one.', reversed:true, dim:'Consistency of Interest' },
+      { num:6, text:'I have difficulty maintaining my focus on projects that take more than a few months to complete.', reversed:true, dim:'Perseverance' },
+      { num:7, text:'I finish whatever I begin.', dim:'Perseverance' },
+      { num:8, text:'I am diligent.', dim:'Perseverance' },
+    ],
+    likert_labels: ['Not at all like me','Not much like me','Somewhat like me','Mostly like me','Very much like me'],
+    likert_points: 5,
+  },
+  {
+    id: 8, abbr: 'BRS', name: 'Resilience', domain: 'Psychology',
+    items_count: 6, response_format: '5-point Likert',
+    anchors: ['1 = Strongly Disagree', '5 = Strongly Agree'],
+    items: [
+      { num:1, text:'I tend to bounce back quickly after hard times.' },
+      { num:2, text:'I have a hard time making it through stressful events.', reversed:true },
+      { num:3, text:'It does not take me long to recover from a stressful event.' },
+      { num:4, text:'It is hard for me to snap back when something bad happens.', reversed:true },
+      { num:5, text:'I usually come through difficult times with little trouble.' },
+      { num:6, text:'I tend to take a long time to get over setbacks in my life.', reversed:true },
+    ],
+    likert_labels: ['Strongly Disagree','Disagree','Neutral','Agree','Strongly Agree'],
+    likert_points: 5,
+  },
+  {
+    id: 9, abbr: 'Flourishing', name: 'Psychological Flourishing', domain: 'Psychology',
+    items_count: 8, response_format: '7-point Likert',
+    anchors: ['1 = Strongly Disagree', '7 = Strongly Agree'],
+    items: [
+      { num:1, text:'I lead a purposeful and meaningful life.' },
+      { num:2, text:'My social relationships are supportive and rewarding.' },
+      { num:3, text:'I am engaged and interested in my daily activities.' },
+      { num:4, text:'I actively contribute to the happiness and well-being of others.' },
+      { num:5, text:'I am competent and capable in the activities that are important to me.' },
+      { num:6, text:'I am a good person and live a good life.' },
+      { num:7, text:'I am optimistic about my future.' },
+      { num:8, text:'People respect me.' },
+    ],
+    likert_labels: ['Strongly Disagree','Disagree','Slightly Disagree','Neither','Slightly Agree','Agree','Strongly Agree'],
+    likert_points: 7,
+  },
+  {
+    id: 10, abbr: 'GQ-6', name: 'Dispositional Gratitude', domain: 'Psychology',
+    items_count: 6, response_format: '7-point Likert',
+    anchors: ['1 = Strongly Disagree', '7 = Strongly Agree'],
+    items: [
+      { num:1, text:'I have so much in life to be thankful for.' },
+      { num:2, text:'If I had to list everything that I felt grateful for, it would be a very long list.' },
+      { num:3, text:'When I look at the world, I don\'t see much to be grateful for.', reversed:true },
+      { num:4, text:'I am grateful to a wide variety of people.' },
+      { num:5, text:'As I get older I find myself more able to appreciate the people, events, and situations that have been part of my life.' },
+      { num:6, text:'Long amounts of time can go by before I feel grateful to something or someone.', reversed:true },
+    ],
+    likert_labels: ['Strongly Disagree','Disagree','Slightly Disagree','Neither','Slightly Agree','Agree','Strongly Agree'],
+    likert_points: 7,
+  },
+  {
+    id: 11, abbr: 'LMX-7', name: 'Leader-Member Exchange', domain: 'Organizational Behaviour',
+    items_count: 7, response_format: 'Mixed Likert',
+    anchors: ['Varies per item'],
+    items: [
+      { num:1, text:'Do you know where you stand with your leader — do you usually know how satisfied your leader is with what you do?' },
+      { num:2, text:'How well does your leader understand your job problems and needs?' },
+      { num:3, text:'How well does your leader recognise your potential?' },
+      { num:4, text:'Regardless of how much formal authority your leader has built into his or her position, what are the chances that your leader would use power to help you solve problems in your work?' },
+      { num:5, text:'Again, regardless of the amount of formal authority your leader has, what are the chances that your leader would "bail you out" at his or her expense?' },
+      { num:6, text:'I have enough confidence in my leader that I would defend and justify his or her decisions if he or she were not present to do so.' },
+      { num:7, text:'How would you characterise your working relationship with your leader?' },
+    ],
+    likert_labels: ['Strongly Disagree','Disagree','Somewhat Disagree','Neutral','Somewhat Agree','Agree','Strongly Agree'],
+    likert_points: 7,
+  },
+  {
+    id: 12, abbr: 'MAAS', name: 'Dispositional Mindfulness', domain: 'Psychology',
+    items_count: 15, response_format: '6-point Likert',
+    anchors: ['1 = Almost Always', '6 = Almost Never'],
+    items: [
+      { num:1, text:'I could be experiencing some emotion and not be conscious of it until some time later.' },
+      { num:2, text:'I break or spill things because of carelessness, not paying attention, or thinking of something else.' },
+      { num:3, text:'I find it difficult to stay focused on what\'s happening in the present.' },
+      { num:4, text:'I tend to walk quickly to get where I\'m going without paying attention to what I experience along the way.' },
+      { num:5, text:'I tend not to notice feelings of physical tension or discomfort until they really grab my attention.' },
+      { num:6, text:'I forget a person\'s name almost as soon as I\'ve been told it for the first time.' },
+      { num:7, text:'It seems I am "running on automatic" without much awareness of what I\'m doing.' },
+      { num:8, text:'I rush through activities without being really attentive to them.' },
+      { num:9, text:'I get so focused on the goal I want to achieve that I lose touch with what I am doing right now to get there.' },
+      { num:10, text:'I do jobs or tasks automatically, without being aware of what I\'m doing.' },
+      { num:11, text:'I find myself listening to someone with one ear, doing something else at the same time.' },
+      { num:12, text:'I drive places on "automatic pilot" and then wonder why I went there.' },
+      { num:13, text:'I find myself preoccupied with the future or the past.' },
+      { num:14, text:'I find myself doing things without paying attention.' },
+      { num:15, text:'I snack without being aware that I\'m eating.' },
+    ],
+    likert_labels: ['Almost Always','Very Frequently','Somewhat Frequently','Somewhat Infrequently','Very Infrequently','Almost Never'],
+    likert_points: 6,
+  },
+  {
+    id: 13, abbr: 'TIS', name: 'Turnover Intention', domain: 'Organizational Behaviour',
+    items_count: 6, response_format: '5-point Likert',
+    anchors: ['1 = Strongly Disagree', '5 = Strongly Agree'],
+    items: [
+      { num:1, text:'I intend to leave this organisation in the near future.' },
+      { num:2, text:'I am actively looking for a job outside this organisation.' },
+      { num:3, text:'It is very possible that I will look for a new job next year.' },
+      { num:4, text:'I often think about quitting my current job.' },
+      { num:5, text:'I will likely search for a new job within the next year.' },
+      { num:6, text:'I have plans to leave this organisation.' },
+    ],
+    likert_labels: ['Strongly Disagree','Disagree','Neutral','Agree','Strongly Agree'],
+    likert_points: 5,
+  },
+  {
+    id: 14, abbr: 'POS', name: 'Perceived Org. Support', domain: 'Organizational Behaviour',
+    items_count: 8, response_format: '7-point Likert',
+    anchors: ['1 = Strongly Disagree', '7 = Strongly Agree'],
+    items: [
+      { num:1, text:'The organisation values my contribution to its well-being.' },
+      { num:2, text:'The organisation fails to appreciate any extra effort from me.', reversed:true },
+      { num:3, text:'The organisation would ignore any complaint from me.', reversed:true },
+      { num:4, text:'The organisation really cares about my well-being.' },
+      { num:5, text:'Even if I did the best job possible, the organisation would fail to notice.', reversed:true },
+      { num:6, text:'The organisation cares about my general satisfaction at work.' },
+      { num:7, text:'The organisation shows very little concern for me.', reversed:true },
+      { num:8, text:'The organisation takes pride in my accomplishments at work.' },
+    ],
+    likert_labels: ['Strongly Disagree','Disagree','Slightly Disagree','Neither','Slightly Agree','Agree','Strongly Agree'],
+    likert_points: 7,
+  },
+  {
+    id: 15, abbr: 'AMS', name: 'Academic Motivation', domain: 'Education',
+    items_count: 12, response_format: '7-point Likert',
+    anchors: ['1 = Does not correspond at all', '7 = Corresponds exactly'],
+    items: [
+      { num:1, text:'Because I experience pleasure and satisfaction while learning new things.', dim:'Intrinsic' },
+      { num:2, text:'Because I think that a university education will help me better prepare for the career I have chosen.', dim:'Extrinsic' },
+      { num:3, text:'For the pleasure I experience when I discover new things never seen before.', dim:'Intrinsic' },
+      { num:4, text:'Because eventually it will allow me to enter the job market in a field that I like.', dim:'Extrinsic' },
+      { num:5, text:'Because I really like going to university.', dim:'Intrinsic' },
+      { num:6, text:'In order to have a better salary later on.', dim:'Extrinsic' },
+      { num:7, text:'For the high feeling that I experience while reading about various interesting subjects.', dim:'Intrinsic' },
+      { num:8, text:'Because I believe that a few more years of education will improve my competence as a worker.', dim:'Extrinsic' },
+      { num:9, text:'For the pleasure I experience when I surpass myself in my studies.', dim:'Intrinsic' },
+      { num:10, text:'In order to obtain a more prestigious job later on.', dim:'Extrinsic' },
+      { num:11, text:'Because university allows me to experience a personal satisfaction in my quest for excellence.', dim:'Intrinsic' },
+      { num:12, text:'For the pleasure that I experience when I feel completely absorbed by what certain authors have written.', dim:'Intrinsic' },
+    ],
+    likert_labels: ['Does not correspond at all','','','Corresponds moderately','','','Corresponds exactly'],
+    likert_points: 7,
+  },
+  {
+    id: 16, abbr: 'PANAS-10', name: 'Positive & Negative Affect', domain: 'Psychology',
+    items_count: 10, response_format: '5-point Likert',
+    anchors: ['1 = Very slightly / Not at all', '5 = Extremely'],
+    items: [
+      { num:1, text:'Interested', dim:'Positive' },
+      { num:2, text:'Distressed', dim:'Negative' },
+      { num:3, text:'Excited', dim:'Positive' },
+      { num:4, text:'Upset', dim:'Negative' },
+      { num:5, text:'Strong', dim:'Positive' },
+      { num:6, text:'Guilty', dim:'Negative' },
+      { num:7, text:'Enthusiastic', dim:'Positive' },
+      { num:8, text:'Nervous', dim:'Negative' },
+      { num:9, text:'Proud', dim:'Positive' },
+      { num:10, text:'Afraid', dim:'Negative' },
+    ],
+    likert_labels: ['Very slightly / Not at all','A little','Moderately','Quite a bit','Extremely'],
+    likert_points: 5,
+    preamble: 'To what extent have you felt this way during the past week?',
+  },
+  {
+    id: 17, abbr: 'NCS-6', name: 'Need for Cognition', domain: 'Psychology',
+    items_count: 6, response_format: '5-point Likert',
+    anchors: ['1 = Extremely Uncharacteristic', '5 = Extremely Characteristic'],
+    items: [
+      { num:1, text:'I would prefer complex to simple problems.' },
+      { num:2, text:'I like to have the responsibility of handling a situation that requires a lot of thinking.' },
+      { num:3, text:'Thinking is not my idea of fun.', reversed:true },
+      { num:4, text:'I would rather do something that requires little thought than something that is sure to challenge my thinking abilities.', reversed:true },
+      { num:5, text:'I really enjoy a task that involves coming up with new solutions to problems.' },
+      { num:6, text:'I would prefer a task that is intellectual, difficult, and important to one that is somewhat important but does not require much thought.' },
+    ],
+    likert_labels: ['Extremely Uncharacteristic','Uncharacteristic','Neither','Characteristic','Extremely Characteristic'],
+    likert_points: 5,
+  },
+  {
+    id: 18, abbr: 'THS', name: 'Trait Hope', domain: 'Psychology',
+    items_count: 8, response_format: '8-point Likert',
+    anchors: ['1 = Definitely False', '8 = Definitely True'],
+    items: [
+      { num:1, text:'I can think of many ways to get out of a jam.', dim:'Pathways' },
+      { num:2, text:'I energetically pursue my goals.', dim:'Agency' },
+      { num:3, text:'I feel tired most of the time.', reversed:true, dim:'Agency' },
+      { num:4, text:'There are lots of ways around any problem.', dim:'Pathways' },
+      { num:5, text:'I am easily downed in an argument.', reversed:true, dim:'Agency' },
+      { num:6, text:'I can think of many ways to get the things in life that are most important to me.', dim:'Pathways' },
+      { num:7, text:'I worry about my health.', reversed:true, dim:'Agency' },
+      { num:8, text:'Even when others get discouraged, I know I can find a way to solve the problem.', dim:'Pathways' },
+    ],
+    likert_labels: ['Def. False','Mostly False','Somewhat False','Slightly False','Slightly True','Somewhat True','Mostly True','Def. True'],
+    likert_points: 8,
+  },
+]
+
+// =====================================================================
+//  STATE
+// =====================================================================
+let state = {
+  // Builder
+  study: {
+    id: null,
+    name: '',
+    desc: '',
+    researcher: '',
+    maxWaves: 3,
+    selectedScales: [],  // array of scale ids from library
+    customQuestions: [], // array of { text, type, options?, label }
+    createdAt: null,
+  },
+  // Survey session
+  session: {
+    studyConfig: null,   // the full study object loaded from storage
+    participantCode: null,
+    waveNum: 1,
+    questions: [],       // flat array of all questions in survey order
+    answers: {},         // { qIndex: value }
+    currentQ: 0,
+    milestoneShown: { 25: false, 50: false, 75: false },
+    startedAt: null,
+  },
+  // UI
+  builderStep: 1,
+  scaleDomainFilter: 'All',
+  customQDraft: { type: 'likert7', choices: [] },
+}
+
+// =====================================================================
+//  NAVIGATION
+// =====================================================================
+function goTo(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+  document.getElementById(`screen-${screenId}`).classList.add('active')
+  window.scrollTo(0, 0)
+}
+
+function showJoinPrompt() {
+  // Check if URL has a study hash
+  const hash = location.hash.slice(1)
+  if (hash) {
+    try {
+      const cfg = JSON.parse(atob(hash))
+      state.session.studyConfig = cfg
+      prefillJoin(cfg)
+    } catch(e) {}
+  }
+  goTo('join')
+}
+
+// =====================================================================
+//  BUILDER
+// =====================================================================
+function builderNext(step) {
+  if (step === 1) {
+    const name = document.getElementById('study-name').value.trim()
+    if (!name) { toast('Please enter a study name.'); return }
+    state.study.name = name
+    state.study.desc = document.getElementById('study-desc').value.trim()
+    state.study.researcher = document.getElementById('study-researcher').value.trim()
+    state.study.maxWaves = parseInt(document.getElementById('study-waves').value)
+    setStep(2)
+    renderScaleGrid()
+  } else if (step === 2) {
+    setStep(3)
+    renderCustomQList()
+  } else if (step === 3) {
+    setStep(4)
+    renderReview()
+  }
+}
+
+function builderBack(step) {
+  setStep(step - 1)
+}
+
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById(`builder-step-${i}`).style.display = i === n ? 'block' : 'none'
+    const dot = document.getElementById(`step-${i}`)
+    dot.classList.toggle('active', i === n)
+    dot.classList.toggle('done', i < n)
+  }
+  state.builderStep = n
+}
+
+// ---- Scale Grid ----
+function renderScaleGrid() {
+  const grid = document.getElementById('scale-grid')
+  const f = state.scaleDomainFilter
+  const scales = f === 'All' ? SCALE_LIBRARY : SCALE_LIBRARY.filter(s => s.domain === f)
+
+  grid.innerHTML = scales.map(s => {
+    const sel = state.study.selectedScales.includes(s.id)
+    return `<div class="scale-card ${sel ? 'selected' : ''}" onclick="toggleScale(${s.id})">
+      <div class="scale-card-check">${sel ? '✓' : ''}</div>
+      <div class="scale-card-abbr">${s.abbr}</div>
+      <div class="scale-card-name">${s.name}</div>
+      <div class="scale-card-meta">${s.items_count} items · ${s.domain}</div>
+    </div>`
+  }).join('')
+}
+
+function toggleScale(id) {
+  const idx = state.study.selectedScales.indexOf(id)
+  if (idx === -1) state.study.selectedScales.push(id)
+  else state.study.selectedScales.splice(idx, 1)
+  renderScaleGrid()
+}
+
+function filterScales(domain, el) {
+  state.scaleDomainFilter = domain
+  document.querySelectorAll('.domain-pill').forEach(p => p.classList.remove('active'))
+  el.classList.add('active')
+  renderScaleGrid()
+}
+
+// ---- Custom Questions ----
+function renderCustomQList() {
+  const list = document.getElementById('custom-q-list')
+  const empty = document.getElementById('cq-empty')
+  const qs = state.study.customQuestions
+  if (qs.length === 0) {
+    empty.style.display = 'block'
+    list.querySelectorAll('.custom-q-item').forEach(e => e.remove())
+    return
+  }
+  empty.style.display = 'none'
+  list.innerHTML = qs.map((q, i) => `
+    <div class="custom-q-item">
+      <div class="cq-text">${q.text}</div>
+      <div class="cq-type">${q.type}</div>
+      <button class="icon-btn" onclick="removeCustomQ(${i})" title="Remove">✕</button>
+    </div>
+  `).join('')
+}
+
+function removeCustomQ(i) {
+  state.study.customQuestions.splice(i, 1)
+  renderCustomQList()
+}
+
+function openAddQModal() {
+  document.getElementById('new-q-text').value = ''
+  document.getElementById('new-q-type').value = 'likert7'
+  document.getElementById('new-q-extra').innerHTML = ''
+  state.customQDraft = { type: 'likert7', choices: [] }
+  document.getElementById('add-q-modal').classList.add('open')
+}
+
+function closeAddQModal() {
+  document.getElementById('add-q-modal').classList.remove('open')
+}
+
+function onQTypeChange() {
+  const type = document.getElementById('new-q-type').value
+  state.customQDraft.type = type
+  const extra = document.getElementById('new-q-extra')
+  if (type === 'choice') {
+    extra.innerHTML = `
+      <div class="field">
+        <label>Options (one per line)</label>
+        <textarea id="choice-options-input" placeholder="Option A\nOption B\nOption C" style="min-height:90px;"></textarea>
+      </div>`
+  } else if (type === 'likert5' || type === 'likert7') {
+    extra.innerHTML = `<div class="field">
+      <label>Scale Label (optional)</label>
+      <input type="text" id="custom-q-label" placeholder="e.g. Agreement, Frequency...">
+    </div>`
+  } else {
+    extra.innerHTML = ''
+  }
+}
+
+function addCustomQ() {
+  const text = document.getElementById('new-q-text').value.trim()
+  if (!text) { toast('Please enter a question.'); return }
+  const type = document.getElementById('new-q-type').value
+  const q = { text, type }
+  if (type === 'choice') {
+    const raw = document.getElementById('choice-options-input')?.value || ''
+    q.choices = raw.split('\n').map(l => l.trim()).filter(Boolean)
+    if (q.choices.length < 2) { toast('Add at least 2 options.'); return }
+  }
+  if (type === 'likert5' || type === 'likert7') {
+    q.label = document.getElementById('custom-q-label')?.value.trim() || ''
+  }
+  state.study.customQuestions.push(q)
+  closeAddQModal()
+  renderCustomQList()
+}
+
+// ---- Review ----
+function renderReview() {
+  const div = document.getElementById('review-content')
+  const sel = state.study.selectedScales.map(id => SCALE_LIBRARY.find(s => s.id === id))
+  const totalItems = sel.reduce((a, s) => a + s.items_count, 0) + state.study.customQuestions.length
+
+  div.innerHTML = `
+    <div class="review-summary-card">
+      <div style="font-size:19px; font-weight:700; letter-spacing:-0.02em; margin-bottom:16px;">${state.study.name}</div>
+      ${state.study.researcher ? `<div style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">${state.study.researcher}</div>` : ''}
+      <div class="review-stat-row">
+        <div class="review-stat"><span class="review-stat-val">${totalItems}</span><span class="review-stat-label">Questions</span></div>
+        <div class="review-stat"><span class="review-stat-val">${sel.length}</span><span class="review-stat-label">Scales</span></div>
+        <div class="review-stat"><span class="review-stat-val">${state.study.customQuestions.length}</span><span class="review-stat-label">Custom Qs</span></div>
+        <div class="review-stat"><span class="review-stat-val">${state.study.maxWaves}</span><span class="review-stat-label">Waves</span></div>
+        <div class="review-stat"><span class="review-stat-val">~${Math.ceil(totalItems * 0.5)} min</span><span class="review-stat-label">Est. Time</span></div>
+      </div>
+      ${sel.length > 0 ? `<div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Scales Included</div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">${sel.map(s => `<span class="tag">${s.abbr}</span>`).join('')}</div>` : ''}
+    </div>
+    ${totalItems === 0 ? `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Add at least one scale or custom question before publishing.</p></div>` : ''}
+  `
+}
+
+// ---- Publish ----
+function publishStudy() {
+  const sel = state.study.selectedScales.map(id => SCALE_LIBRARY.find(s => s.id === id))
+  const totalItems = sel.reduce((a, s) => a + s.items_count, 0) + state.study.customQuestions.length
+  if (totalItems === 0) { toast('Add at least one question first.'); return }
+
+  const studyId = generateCode(6)
+  state.study.id = studyId
+  state.study.createdAt = new Date().toISOString()
+
+  const config = {
+    id: studyId,
+    name: state.study.name,
+    desc: state.study.desc,
+    researcher: state.study.researcher,
+    maxWaves: state.study.maxWaves,
+    selectedScaleIds: state.study.selectedScales,
+    customQuestions: state.study.customQuestions,
+    createdAt: state.study.createdAt,
+  }
+
+  // Save to localStorage (keyed by studyId)
+  localStorage.setItem(`cadence_study_${studyId}`, JSON.stringify(config))
+
+  // Build shareable URL
+  const encoded = btoa(JSON.stringify(config))
+  const url = `${location.origin}${location.pathname}#${encoded}`
+
+  document.getElementById('study-link-display').value = url
+  document.getElementById('study-code-display').textContent = studyId
+
+  goTo('study-done')
+}
+
+function copyStudyLink() {
+  const val = document.getElementById('study-link-display').value
+  navigator.clipboard.writeText(val).then(() => toast('Link copied!'))
+}
+
+function copyStudyCode() {
+  const val = document.getElementById('study-code-display').textContent
+  navigator.clipboard.writeText(val).then(() => toast('Study code copied!'))
+}
+
+// =====================================================================
+//  JOIN FLOW
+// =====================================================================
+function prefillJoin(cfg) {
+  document.getElementById('join-study-code').value = cfg.id || ''
+}
+
+function joinStudy() {
+  const codeInput = document.getElementById('join-study-code').value.trim().toUpperCase()
+  const pcInput = document.getElementById('join-participant-code').value.trim().toUpperCase()
+
+  if (!codeInput || codeInput.length !== 6) { toast('Enter a valid 6-character study code.'); return }
+
+  // Try URL hash first, then localStorage
+  let cfg = null
+  const hash = location.hash.slice(1)
+  if (hash) {
+    try {
+      const decoded = JSON.parse(atob(hash))
+      if (decoded.id === codeInput) cfg = decoded
+    } catch(e) {}
+  }
+  if (!cfg) {
+    const stored = localStorage.getItem(`cadence_study_${codeInput}`)
+    if (stored) cfg = JSON.parse(stored)
+  }
+
+  if (!cfg) { toast('Study not found. Check the code or link.'); return }
+
+  // Determine participant code and wave
+  let participantCode = pcInput || generateCode(6)
+  const waveKey = `cadence_wave_${cfg.id}_${participantCode}`
+  const waveData = localStorage.getItem(waveKey)
+  let waveNum = 1
+  if (waveData) {
+    const parsed = JSON.parse(waveData)
+    waveNum = (parsed.completedWaves || 0) + 1
+  }
+
+  if (waveNum > cfg.maxWaves) {
+    toast(`You have already completed all ${cfg.maxWaves} wave(s) of this study. Thank you!`)
+    return
+  }
+
+  // Set state
+  state.session.studyConfig = cfg
+  state.session.participantCode = participantCode
+  state.session.waveNum = waveNum
+  state.session.answers = {}
+  state.session.currentQ = 0
+  state.session.milestoneShown = { 25: false, 50: false, 75: false }
+  state.session.startedAt = new Date().toISOString()
+
+  // Build question list
+  state.session.questions = buildQuestionList(cfg)
+
+  // Show join info
+  const waveBadge = document.getElementById('join-wave-badge')
+  waveBadge.textContent = `Wave ${waveNum} of ${cfg.maxWaves}`
+  document.getElementById('join-study-name-display').textContent = cfg.name
+  document.getElementById('join-study-desc-display').textContent = cfg.desc || ''
+  document.getElementById('join-participant-code-display').textContent = participantCode
+
+  document.getElementById('join-enter-code-view').style.display = 'none'
+  document.getElementById('join-study-info-view').style.display = 'block'
+}
+
+function copyParticipantCode() {
+  const val = document.getElementById('join-participant-code-display').textContent
+  navigator.clipboard.writeText(val).then(() => toast('Participant code copied!'))
+}
+
+function buildQuestionList(cfg) {
+  const qs = []
+  // Scales first
+  for (const id of (cfg.selectedScaleIds || [])) {
+    const scale = SCALE_LIBRARY.find(s => s.id === id)
+    if (!scale) continue
+    for (const item of scale.items) {
+      qs.push({
+        type: 'likert',
+        scaleAbbr: scale.abbr,
+        scaleName: scale.name,
+        scaleId: scale.id,
+        itemNum: item.num,
+        text: item.text,
+        preamble: scale.preamble || null,
+        dim: item.dim || null,
+        reversed: item.reversed || false,
+        likert_points: scale.likert_points,
+        likert_labels: scale.likert_labels,
+      })
+    }
+  }
+  // Custom questions
+  for (const q of (cfg.customQuestions || [])) {
+    qs.push({ type: 'custom', ...q })
+  }
+  return qs
+}
+
+function startSurvey() {
+  const cfg = state.session.studyConfig
+  const n = state.session.questions.length
+  document.getElementById('intro-q-count').textContent = `${n} question${n !== 1 ? 's' : ''}`
+  document.getElementById('intro-time-estimate').textContent = `~${Math.ceil(n * 0.5)} min`
+  goTo('intro')
+}
+
+function beginSurvey() {
+  goTo('survey')
+  renderQuestion(state.session.currentQ)
+}
+
+// =====================================================================
+//  SURVEY ENGINE
+// =====================================================================
+function renderQuestion(idx) {
+  const qs = state.session.questions
+  const q = qs[idx]
+  const n = qs.length
+  const pct = Math.round((idx / n) * 100)
+
+  document.getElementById('progress-fill').style.width = `${pct}%`
+  document.getElementById('progress-label').textContent = `${pct}%`
+  document.getElementById('q-counter').textContent = `${idx + 1} / ${n}`
+
+  const wrap = document.getElementById('q-wrap')
+  wrap.style.animation = 'none'
+  wrap.offsetHeight // reflow
+  wrap.style.animation = 'slideIn 0.35s cubic-bezier(0.22, 1, 0.36, 1)'
+
+  const labelEl = document.getElementById('q-scale-label')
+  const textEl = document.getElementById('q-text')
+  const inputEl = document.getElementById('q-input-area')
+
+  if (q.type === 'likert') {
+    labelEl.textContent = `${q.scaleAbbr} — ${q.scaleName}${q.dim ? ' · ' + q.dim : ''}`
+    textEl.textContent = (q.preamble ? q.preamble + '\n\n' : '') + q.text
+    inputEl.innerHTML = renderLikert(idx, q)
+  } else if (q.type === 'custom') {
+    labelEl.textContent = 'Your Response'
+    textEl.textContent = q.text
+    inputEl.innerHTML = renderCustomInput(idx, q)
+  }
+
+  updateNextBtn(idx)
+}
+
+function renderLikert(idx, q) {
+  const pts = q.likert_points
+  const labels = q.likert_labels
+  const selected = state.session.answers[idx]
+  let html = '<div class="likert-wrap">'
+  for (let v = 1; v <= pts; v++) {
+    const label = labels[v - 1] || `${v}`
+    const sel = selected === v
+    html += `<div class="likert-opt ${sel ? 'selected' : ''}" onclick="selectLikert(${idx}, ${v})" data-val="${v}">
+      <div class="likert-key">${v}</div>
+      <div class="likert-label">${label}</div>
+    </div>`
+  }
+  html += '</div>'
+  return html
+}
+
+function renderCustomInput(idx, q) {
+  const val = state.session.answers[idx]
+  if (q.type === 'likert5' || q.type === 'likert7') {
+    const pts = q.type === 'likert7' ? 7 : 5
+    const labels = pts === 7
+      ? ['Strongly Disagree','Disagree','Slightly Disagree','Neither','Slightly Agree','Agree','Strongly Agree']
+      : ['Strongly Disagree','Disagree','Neutral','Agree','Strongly Agree']
+    const mockQ = { likert_points: pts, likert_labels: labels }
+    return renderLikert(idx, mockQ)
+  }
+  if (q.type === 'open') {
+    return `<div class="open-wrap"><textarea rows="4" placeholder="Type your answer here..." onchange="setAnswer(${idx}, this.value)" oninput="setAnswer(${idx}, this.value)">${val || ''}</textarea></div>`
+  }
+  if (q.type === 'number') {
+    return `<div class="number-wrap"><input type="number" placeholder="0" value="${val || ''}" oninput="setAnswer(${idx}, this.value ? parseFloat(this.value) : null)"></div>`
+  }
+  if (q.type === 'choice') {
+    const choices = q.choices || []
+    return `<div class="choice-grid">${choices.map((c, ci) =>
+      `<div class="choice-opt ${val === c ? 'selected' : ''}" onclick="selectChoice(${idx}, '${c.replace(/'/g,"\\'")}', this)">${c}</div>`
+    ).join('')}</div>`
+  }
+  return ''
+}
+
+function selectLikert(idx, val) {
+  state.session.answers[idx] = val
+  renderQuestion(idx)
+  // Auto-advance after 600ms
+  clearTimeout(window._autoAdvance)
+  window._autoAdvance = setTimeout(() => {
+    checkMilestone(idx)
+  }, 600)
+}
+
+function selectChoice(idx, val, el) {
+  state.session.answers[idx] = val
+  document.querySelectorAll('.choice-opt').forEach(e => e.classList.remove('selected'))
+  el.classList.add('selected')
+  updateNextBtn(idx)
+  clearTimeout(window._autoAdvance)
+  window._autoAdvance = setTimeout(() => nextQuestion(), 600)
+}
+
+function setAnswer(idx, val) {
+  state.session.answers[idx] = val
+  updateNextBtn(idx)
+}
+
+function updateNextBtn(idx) {
+  const btn = document.getElementById('btn-next')
+  const ans = state.session.answers[idx]
+  const q = state.session.questions[idx]
+  let answered = false
+  if (q.type === 'likert' || q.type === 'likert5' || q.type === 'likert7') {
+    answered = ans !== undefined && ans !== null
+  } else if (q.type === 'open') {
+    answered = typeof ans === 'string' && ans.trim().length > 0
+  } else if (q.type === 'number') {
+    answered = ans !== undefined && ans !== null && ans !== ''
+  } else if (q.type === 'choice') {
+    answered = ans !== undefined && ans !== null
+  }
+  btn.disabled = !answered
+}
+
+function checkMilestone(idx) {
+  const n = state.session.questions.length
+  const pct = Math.round(((idx + 1) / n) * 100)
+  const milestones = [25, 50, 75]
+  for (const m of milestones) {
+    if (pct >= m && !state.session.milestoneShown[m]) {
+      state.session.milestoneShown[m] = true
+      showMilestone(m, idx)
+      return
+    }
+  }
+  nextQuestion()
+}
+
+function showMilestone(pct, fromIdx) {
+  state.session.currentQ = fromIdx + 1
+  const data = {
+    25: { emoji: '🎯', title: 'Quarter way there!', sub: 'You\'re off to a great start. Keep the momentum going!' },
+    50: { emoji: '🔥', title: 'Halfway done!', sub: 'Exactly halfway. You\'re doing brilliantly — the second half is faster.' },
+    75: { emoji: '🚀', title: 'Almost there!', sub: 'Just a few more questions. You\'ve got this!' },
+  }
+  const d = data[pct]
+  document.getElementById('milestone-emoji').textContent = d.emoji
+  document.getElementById('milestone-title').textContent = d.title
+  document.getElementById('milestone-sub').textContent = d.sub
+  goTo('milestone')
+}
+
+function resumeSurvey() {
+  goTo('survey')
+  renderQuestion(state.session.currentQ)
+}
+
+function nextQuestion() {
+  const idx = state.session.currentQ
+  const ans = state.session.answers[idx]
+  if (ans === undefined || ans === null) return
+
+  const next = idx + 1
+  if (next >= state.session.questions.length) {
+    completeSurvey()
+    return
+  }
+  state.session.currentQ = next
+  renderQuestion(next)
+}
+
+function surveyBack() {
+  const idx = state.session.currentQ
+  if (idx === 0) {
+    if (confirm('Go back to the study intro?')) goTo('intro')
+    return
+  }
+  state.session.currentQ = idx - 1
+  renderQuestion(idx - 1)
+}
+
+function completeSurvey() {
+  const cfg = state.session.studyConfig
+  const pc = state.session.participantCode
+  const waveNum = state.session.waveNum
+
+  // Save response
+  const response = {
+    studyId: cfg.id,
+    participantCode: pc,
+    waveNum,
+    completedAt: new Date().toISOString(),
+    startedAt: state.session.startedAt,
+    answers: state.session.answers,
+    questions: state.session.questions.map((q, i) => ({
+      idx: i,
+      scaleAbbr: q.scaleAbbr || 'Custom',
+      text: q.text,
+      dim: q.dim || null,
+      reversed: q.reversed || false,
+      answer: state.session.answers[i],
+    }))
+  }
+
+  const waveKey = `cadence_wave_${cfg.id}_${pc}`
+  const existing = JSON.parse(localStorage.getItem(waveKey) || '{"completedWaves":0,"responses":[]}')
+  existing.completedWaves = waveNum
+  existing.responses.push(response)
+  localStorage.setItem(waveKey, JSON.stringify(existing))
+
+  // Also save to study-level responses list
+  const studyResponseKey = `cadence_responses_${cfg.id}`
+  const studyResponses = JSON.parse(localStorage.getItem(studyResponseKey) || '[]')
+  studyResponses.push(response)
+  localStorage.setItem(studyResponseKey, JSON.stringify(studyResponses))
+
+  // Update UI
+  const sub = document.getElementById('complete-sub')
+  sub.textContent = `Wave ${waveNum} complete. Your responses have been saved. Thank you for participating in "${cfg.name}".`
+
+  const note = document.getElementById('wave-continue-note')
+  if (waveNum < cfg.maxWaves) {
+    note.textContent = `Save your participant code (${pc}) to return for Wave ${waveNum + 1}.`
+  } else {
+    note.textContent = `You have completed all ${cfg.maxWaves} wave(s) of this study.`
+  }
+
+  goTo('complete')
+}
+
+function downloadMyData() {
+  const cfg = state.session.studyConfig
+  const pc = state.session.participantCode
+  const waveKey = `cadence_wave_${cfg.id}_${pc}`
+  const data = JSON.parse(localStorage.getItem(waveKey) || '{}')
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `cadence_${cfg.id}_${pc}.json`
+  a.click()
+}
+
+// =====================================================================
+//  EXPORT / XLSX
+// =====================================================================
+function openExportModal() {
+  const studyId = state.study.id || document.getElementById('study-code-display').textContent
+  const studyResponseKey = `cadence_responses_${studyId}`
+  const responses = JSON.parse(localStorage.getItem(studyResponseKey) || '[]')
+
+  const content = document.getElementById('export-content')
+  if (responses.length === 0) {
+    content.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><p>No responses collected yet. Share the study link with participants.</p></div>`
+  } else {
+    const byParticipant = {}
+    for (const r of responses) {
+      if (!byParticipant[r.participantCode]) byParticipant[r.participantCode] = []
+      byParticipant[r.participantCode].push(r)
+    }
+    content.innerHTML = `
+      <div class="export-section">
+        <div class="export-section-title">Responses (${responses.length} wave submissions from ${Object.keys(byParticipant).length} participants)</div>
+        <div class="export-list">${Object.entries(byParticipant).map(([pc, rs]) => `
+          <div class="export-participant-row">
+            <span class="export-code">${pc}</span>
+            <span class="export-wave">${rs.length} wave${rs.length>1?'s':''}</span>
+            <span class="export-date">${new Date(rs[rs.length-1].completedAt).toLocaleDateString()}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div style="font-size:13px; color:var(--text-secondary); line-height:1.5;">The Excel file will contain 3 sheets: Raw Responses, Scale Means, and Wave Log.</div>
+    `
+  }
+  document.getElementById('export-modal').classList.add('open')
+}
+
+function closeExportModal() {
+  document.getElementById('export-modal').classList.remove('open')
+}
+
+function exportXLSX() {
+  const studyId = state.study.id || document.getElementById('study-code-display').textContent
+  const studyResponseKey = `cadence_responses_${studyId}`
+  const responses = JSON.parse(localStorage.getItem(studyResponseKey) || '[]')
+
+  if (responses.length === 0) { toast('No data to export yet.'); return }
+
+  const wb = XLSX.utils.book_new()
+
+  // Sheet 1: Raw responses
+  const rawRows = []
+  const header = ['Participant Code', 'Wave', 'Completed At', 'Duration (min)']
+  // Build all question columns
+  const firstResp = responses[0]
+  const qCols = firstResp.questions.map((q, i) => `Q${i+1}: ${q.text.slice(0, 40)}`)
+  const fullHeader = [...header, ...qCols]
+  rawRows.push(fullHeader)
+
+  for (const r of responses) {
+    const dur = r.startedAt ? Math.round((new Date(r.completedAt) - new Date(r.startedAt)) / 60000) : ''
+    const row = [r.participantCode, r.waveNum, r.completedAt, dur]
+    for (let i = 0; i < r.questions.length; i++) {
+      row.push(r.answers[i] ?? '')
+    }
+    rawRows.push(row)
+  }
+  const ws1 = XLSX.utils.aoa_to_sheet(rawRows)
+  XLSX.utils.book_append_sheet(wb, ws1, 'Raw Responses')
+
+  // Sheet 2: Scale Means
+  const meansRows = [['Participant Code', 'Wave', ...SCALE_LIBRARY.filter(s => state.study.selectedScales.includes(s.id)).map(s => s.abbr + ' Mean')]]
+  for (const r of responses) {
+    const row = [r.participantCode, r.waveNum]
+    for (const scaleId of (state.session.studyConfig?.selectedScaleIds || state.study.selectedScales || [])) {
+      const scale = SCALE_LIBRARY.find(s => s.id === scaleId)
+      if (!scale) { row.push(''); continue }
+      const idxs = r.questions.reduce((acc, q, i) => { if (q.scaleAbbr === scale.abbr) acc.push(i); return acc }, [])
+      const vals = idxs.map(i => r.answers[i]).filter(v => v !== undefined && v !== null && !isNaN(v))
+      row.push(vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2) : '')
+    }
+    meansRows.push(row)
+  }
+  const ws2 = XLSX.utils.aoa_to_sheet(meansRows)
+  XLSX.utils.book_append_sheet(wb, ws2, 'Scale Means')
+
+  // Sheet 3: Wave Log
+  const logRows = [['Study ID', 'Study Name', 'Participant Code', 'Wave', 'Started At', 'Completed At']]
+  for (const r of responses) {
+    logRows.push([r.studyId, state.study.name || '', r.participantCode, r.waveNum, r.startedAt || '', r.completedAt])
+  }
+  const ws3 = XLSX.utils.aoa_to_sheet(logRows)
+  XLSX.utils.book_append_sheet(wb, ws3, 'Wave Log')
+
+  XLSX.writeFile(wb, `cadence_export_${studyId}.xlsx`)
+  toast('Excel file downloaded!')
+}
+
+// =====================================================================
+//  KEYBOARD SHORTCUTS
+// =====================================================================
+document.addEventListener('keydown', e => {
+  const screen = document.querySelector('.screen.active')?.id
+  if (screen !== 'screen-survey') return
+
+  const q = state.session.questions[state.session.currentQ]
+  if (!q) return
+
+  if (e.key === 'ArrowRight' || e.key === 'Enter') {
+    e.preventDefault()
+    if (!document.getElementById('btn-next').disabled) nextQuestion()
+  }
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    surveyBack()
+  }
+
+  if ((q.type === 'likert' || q.type === 'likert5' || q.type === 'likert7')) {
+    const pts = q.likert_points || (q.type === 'likert7' ? 7 : q.type === 'likert5' ? 5 : 7)
+    const n = parseInt(e.key)
+    if (n >= 1 && n <= pts) {
+      e.preventDefault()
+      selectLikert(state.session.currentQ, n)
+    }
+  }
+})
+
+// =====================================================================
+//  UTILITIES
+// =====================================================================
+function generateCode(len) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  let code = ''
+  for (let i = 0; i < len; i++) code += chars[Math.floor(Math.random() * chars.length)]
+  return code
+}
+
+let _toastTimeout
+function toast(msg) {
+  const el = document.getElementById('toast')
+  el.textContent = msg
+  el.classList.add('show')
+  clearTimeout(_toastTimeout)
+  _toastTimeout = setTimeout(() => el.classList.remove('show'), 2600)
+}
+
+// =====================================================================
+//  INIT: Check URL hash on load
+// =====================================================================
+window.addEventListener('load', () => {
+  const hash = location.hash.slice(1)
+  if (hash) {
+    try {
+      const cfg = JSON.parse(atob(hash))
+      if (cfg.id && cfg.name) {
+        // This is a study link — go straight to join
+        state.session.studyConfig = cfg
+        document.getElementById('join-study-code').value = cfg.id
+        goTo('join')
+        prefillJoin(cfg)
+        return
+      }
+    } catch(e) {}
+  }
+  // Default: show landing
+  goTo('landing')
+})
+</script>
+</body>
+</html>
