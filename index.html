@@ -1218,6 +1218,29 @@
     text-overflow: ellipsis;
   }
 
+  .dim-sheet-citation {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 10px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .dim-sheet-citation a {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+  }
+  .dim-sheet-citation a:hover { text-decoration: underline; }
+
   .dim-sheet-quick {
     display: flex;
     gap: 8px;
@@ -1308,6 +1331,65 @@
     color: var(--accent);
     font-weight: 600;
     margin-top: 4px;
+  }
+
+  /* ---- REVIEW SCALE BREAKDOWN ---- */
+  .review-scale-breakdown {
+    margin-top: 16px;
+  }
+  .review-scale-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .review-scale-row-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .review-scale-row-abbr {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .review-scale-row-name {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .review-scale-row-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .review-dim-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .review-dim-chip {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 980px;
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+  .review-dim-chip.excluded {
+    background: var(--surface);
+    color: var(--text-tertiary);
+    text-decoration: line-through;
+    opacity: 0.55;
   }
 
   /* ---- GLOBAL: no text overflow ---- */
@@ -1628,6 +1710,7 @@
     <div class="dim-sheet-header">
       <div class="dim-sheet-title" id="dim-picker-title"></div>
       <div class="dim-sheet-sub" id="dim-picker-sub"></div>
+      <div class="dim-sheet-citation" id="dim-picker-citation" style="display:none;"></div>
       <div class="dim-sheet-quick">
         <button class="dim-quick-btn" onclick="selectAllDims()">Select all</button>
         <button class="dim-quick-btn" onclick="clearAllDims()">Clear all</button>
@@ -5349,12 +5432,28 @@ function renderReview() {
         <div class="review-stat"><span class="review-stat-val">${state.study.maxWaves}</span><span class="review-stat-label">Waves</span></div>
         <div class="review-stat"><span class="review-stat-val">~${Math.ceil(totalItems * 0.5)} min</span><span class="review-stat-label">Est. Time</span></div>
       </div>
-      ${sel.length > 0 ? `<div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Scales Included</div>
-      <div style="display:flex; gap:6px; flex-wrap:wrap;">${sel.map(s => {
-        const dims = state.study.scaleDimensions[s.id]
+      ${sel.length > 0 ? `
+      <div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Scales Included</div>
+      <div class="review-scale-breakdown">${sel.map(s => {
+        const selectedDims = state.study.scaleDimensions[s.id] || null
         const allDimsArr = [...new Set(s.items.map(i => i.dim).filter(Boolean))]
-        const suffix = dims && allDimsArr.length >= 2 ? ` (${dims.length}/${allDimsArr.length} dims)` : ''
-        return `<span class="tag">${s.abbr}${suffix}</span>`
+        const isMultiDim = allDimsArr.length >= 2
+        const effectiveCount = getEffectiveItemCount(s.id)
+        const dimChips = isMultiDim
+          ? allDimsArr.map(d => {
+              const included = !selectedDims || selectedDims.includes(d)
+              return `<span class="review-dim-chip ${included ? '' : 'excluded'}">${d}</span>`
+            }).join('')
+          : ''
+        return `
+          <div class="review-scale-row">
+            <div class="review-scale-row-top">
+              <span class="review-scale-row-abbr">${s.abbr}</span>
+              <span class="review-scale-row-name">${s.name}</span>
+              <span class="review-scale-row-count">${effectiveCount} item${effectiveCount !== 1 ? 's' : ''}</span>
+            </div>
+            ${dimChips ? `<div class="review-dim-chips">${dimChips}</div>` : ''}
+          </div>`
       }).join('')}</div>` : ''}
     </div>
     ${totalItems === 0 ? `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Add at least one scale or custom question before publishing.</p></div>` : ''}
@@ -5496,6 +5595,20 @@ function openDimPicker(id) {
   // Show Remove button only when scale is already in study
   const removeBtn = document.getElementById('dim-remove-btn')
   if (removeBtn) removeBtn.style.display = isSelected ? 'inline-flex' : 'none'
+  // Populate APA citation block
+  const citBox = document.getElementById('dim-picker-citation')
+  if (citBox && scale.citation) {
+    const c = scale.citation
+    const linkHtml = c.doi
+      ? `<a href="https://doi.org/${c.doi}" target="_blank" rel="noopener">🔗 DOI: ${c.doi}</a>`
+      : c.url
+        ? `<a href="${c.url}" target="_blank" rel="noopener">🔍 View paper (no DOI)</a>`
+        : ''
+    citBox.innerHTML = `${c.apa}${linkHtml ? '<br>' + linkHtml : ''}`
+    citBox.style.display = ''
+  } else if (citBox) {
+    citBox.style.display = 'none'
+  }
   renderDimList(scale, allDims)
   document.getElementById('dim-picker-modal').classList.add('open')
 }
