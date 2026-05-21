@@ -310,6 +310,36 @@
     color: var(--text-secondary);
   }
 
+  .scale-card-citation {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+  }
+
+  .scale-card-citation a {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  .scale-card-citation a:hover { text-decoration: underline; }
+
+  .scale-card-citation .no-doi {
+    font-size: 10px;
+    font-weight: 600;
+    color: #f59e0b;
+    margin-top: 4px;
+  }
+
   .scale-domain-filter {
     display: flex;
     gap: 8px;
@@ -1636,6 +1666,10 @@ const SCALE_LIBRARY = [
       { num:14, text:'I have accomplished many worthwhile things in this job.', dim:'Professional Efficacy', reversed:true },
       { num:15, text:'I feel confident that I am effective at getting things done.', dim:'Professional Efficacy', reversed:true },
     ],
+    citation: {
+      apa: 'Schaufeli, W. B., Leiter, M. P., Maslach, C., & Jackson, S. E. (1996). Maslach Burnout Inventory–General Survey. In C. Maslach, S. E. Jackson, & M. P. Leiter, MBI Manual (3rd ed.). Consulting Psychologists Press.. https://doi.org/10.1002/job.4030160405',
+      doi: '10.1002/job.4030160405'
+    },
   },
   {
     id: 2,
@@ -1658,6 +1692,10 @@ const SCALE_LIBRARY = [
       { num:8, text:'I am immersed in my work.', dim:'Absorption' },
       { num:9, text:'I get carried away when I am working.', dim:'Absorption' },
     ],
+    citation: {
+      apa: 'Schaufeli, W. B., Bakker, A. B., & Salanova, M. (2006). The measurement of work engagement with a short questionnaire: A cross-national study. Educational and Psychological Measurement, 66(4), 701–716.. https://doi.org/10.1177/0013164405282471',
+      doi: '10.1177/0013164405282471'
+    },
   },
   {
     id: 3,
@@ -1689,6 +1727,10 @@ const SCALE_LIBRARY = [
       { num:17, text:'I would not leave my organization right now because I have a sense of obligation to the people in it.', dim:'Normative Commitment' },
       { num:18, text:'I owe a great deal to my organization.', dim:'Normative Commitment' },
     ],
+    citation: {
+      apa: 'Meyer, J. P., & Allen, N. J. (1991). A three-component conceptualization of organizational commitment. Human Resource Management Review, 1(1), 61–89.. https://doi.org/10.1016/1053-4822(91)90011-Z',
+      doi: '10.1016/1053-4822(91)90011-Z'
+    },
   },
   {
     id: 4,
@@ -1710,6 +1752,10 @@ const SCALE_LIBRARY = [
       { num:7, text:'The organization shows very little concern for me.', reversed:true },
       { num:8, text:'The organization takes pride in my accomplishments at work.' },
     ],
+    citation: {
+      apa: 'Eisenberger, R., Huntington, R., Hutchison, S., & Sowa, D. (1986). Perceived organizational support. Journal of Applied Psychology, 71(3), 500–507.. https://doi.org/10.1037/0021-9010.71.3.500',
+      doi: '10.1037/0021-9010.71.3.500'
+    },
   },
   {
     id: 5,
@@ -1730,6 +1776,10 @@ const SCALE_LIBRARY = [
       { num:6, text:'I have enough confidence in my leader that I would defend and justify their decisions if they were not present to do so.' },
       { num:7, text:'How would you characterize your working relationship with your leader?' },
     ],
+    citation: {
+      apa: 'Graen, G. B., & Uhl-Bien, M. (1995). Relationship-based approach to leadership: Development of leader-member exchange (LMX) theory of leadership over 25 years. The Leadership Quarterly, 6(2), 219–247.. https://doi.org/10.1016/1048-9843(95)90036-5',
+      doi: '10.1016/1048-9843(95)90036-5'
+    },
   },
   {
     id: 6,
@@ -1755,6 +1805,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'I have a great deal of control over what happens in my department.', dim:'Impact' },
       { num:12, text:'I have significant influence over what happens in my department.', dim:'Impact' },
     ],
+    citation: {
+      apa: 'Spreitzer, G. M. (1995). Psychological empowerment in the workplace: Dimensions, measurement, and validation. Academy of Management Journal, 38(5), 1442–1465.. https://doi.org/10.5465/256865',
+      doi: '10.5465/256865'
+    },
   },
   {
     id: 7,
@@ -1771,6 +1825,10 @@ const SCALE_LIBRARY = [
       { num:2, text:'I am actively looking for a job with another organization.' },
       { num:3, text:'I intend to quit this job within the next year.' },
     ],
+    citation: {
+      apa: 'Mobley, W. H., Horner, S. O., & Hollingsworth, A. T. (1978). An evaluation of precursors of hospital employee turnover. Journal of Applied Psychology, 63(4), 408–414.. https://doi.org/10.1037/0021-9010.63.4.408',
+      doi: '10.1037/0021-9010.63.4.408'
+    },
   },
   {
     id: 8,
@@ -1808,6 +1866,10 @@ const SCALE_LIBRARY = [
       { num:23, text:'Keeps abreast of changes in the organization.', dim:'Civic Virtue' },
       { num:24, text:'Reads and keeps up with organizational announcements.', dim:'Civic Virtue' },
     ],
+    citation: {
+      apa: 'Podsakoff, P. M., MacKenzie, S. B., Moorman, R. H., & Fetter, R. (1990). Transformational leader behaviors and their effects on followers\. The Leadership Quarterly, 1(2), 107–142.. https://doi.org/10.1016/1048-9843(90)90009-7',
+      doi: '10.1016/1048-9843(90)90009-7'
+    },
   },
   {
     id: 9,
@@ -1841,6 +1903,10 @@ const SCALE_LIBRARY = [
       { num:19, text:'Has communicated details in a timely manner?', dim:'Informational Justice' },
       { num:20, text:'Has seemed to tailor communications to individuals\' specific needs?', dim:'Informational Justice' },
     ],
+    citation: {
+      apa: 'Colquitt, J. A. (2001). On the dimensionality of organizational justice: A construct validation of a measure. Journal of Applied Psychology, 86(3), 386–400.. https://doi.org/10.1037/0021-9010.86.3.386',
+      doi: '10.1037/0021-9010.86.3.386'
+    },
   },
   {
     id: 10,
@@ -1861,6 +1927,10 @@ const SCALE_LIBRARY = [
       { num:6, text:'No one on this team would deliberately act in a way that undermines my efforts.' },
       { num:7, text:'Working with members of this team, my unique skills and talents are valued and utilized.' },
     ],
+    citation: {
+      apa: 'Edmondson, A. (1999). Psychological safety and learning behavior in work teams. Administrative Science Quarterly, 44(2), 350–383.. https://doi.org/10.2307/2666999',
+      doi: '10.2307/2666999'
+    },
   },
   {
     id: 11,
@@ -1884,6 +1954,10 @@ const SCALE_LIBRARY = [
       { num:9, text:'My home life interferes with my responsibilities at work such as getting to work on time, accomplishing daily tasks, and working overtime.', dim:'Family-to-Work Conflict' },
       { num:10, text:'Family-related strain interferes with my ability to perform job-related duties.', dim:'Family-to-Work Conflict' },
     ],
+    citation: {
+      apa: 'Netemeyer, R. G., Boles, J. S., & McMurrian, R. (1996). Development and validation of work–family conflict and family–work conflict scales. Journal of Applied Psychology, 81(4), 400–410.. https://doi.org/10.1037/0021-9010.81.4.400',
+      doi: '10.1037/0021-9010.81.4.400'
+    },
   },
   {
     id: 12,
@@ -1903,6 +1977,10 @@ const SCALE_LIBRARY = [
       { num:5, text:'Transforms innovative ideas into useful applications.', dim:'Idea Implementation' },
       { num:6, text:'Systematically introduces innovative ideas into work practices.', dim:'Idea Implementation' },
     ],
+    citation: {
+      apa: 'Scott, S. G., & Bruce, R. A. (1994). Determinants of innovative behavior: A path model of individual innovation in the workplace. Academy of Management Journal, 37(3), 580–607.. https://doi.org/10.5465/256701',
+      doi: '10.5465/256701'
+    },
   },
   {
     id: 13,
@@ -1937,6 +2015,10 @@ const SCALE_LIBRARY = [
       { num:20, text:'I try to keep the workload manageable.', dim:'Decreasing Hindering Job Demands' },
       { num:21, text:'I arrange my work so as to minimize contact with people whose problems affect me emotionally.', dim:'Decreasing Hindering Job Demands' },
     ],
+    citation: {
+      apa: 'Tims, M., Bakker, A. B., & Derks, D. (2012). Development and validation of the job crafting scale. Journal of Vocational Behavior, 80(1), 173–186.. https://doi.org/10.1016/j.jvb.2011.05.009',
+      doi: '10.1016/j.jvb.2011.05.009'
+    },
   },
   {
     id: 14,
@@ -1960,6 +2042,10 @@ const SCALE_LIBRARY = [
       { num:9, text:'I ask colleagues for their knowledge so that I can improve myself.', dim:'Knowledge Collecting' },
       { num:10, text:'I ask colleagues to explain their work methods to me.', dim:'Knowledge Collecting' },
     ],
+    citation: {
+      apa: 'Van den Hooff, B., & De Ridder, J. A. (2004). Knowledge sharing in context: The influence of organizational commitment, communication climate and CMC use on knowledge sharing. Journal of Knowledge Management, 8(6), 117–130.. https://doi.org/10.1108/13673270410567675',
+      doi: '10.1108/13673270410567675'
+    },
   },
   {
     id: 15,
@@ -1988,6 +2074,10 @@ const SCALE_LIBRARY = [
       { num:14, text:'My supervisor tells me I am incompetent.' },
       { num:15, text:'My supervisor lies about me.' },
     ],
+    citation: {
+      apa: 'Tepper, B. J. (2000). Consequences of abusive supervision. Academy of Management Journal, 43(2), 178–190.. https://doi.org/10.5465/1556375',
+      doi: '10.5465/1556375'
+    },
   },
   {
     id: 16,
@@ -2021,6 +2111,10 @@ const SCALE_LIBRARY = [
       { num:19, text:'Considers me as having different needs, abilities, and aspirations from others.', dim:'Individualized Consideration' },
       { num:20, text:'Helps me to develop my strengths.', dim:'Individualized Consideration' },
     ],
+    citation: {
+      apa: 'Avolio, B. J., Bass, B. M., & Jung, D. I. (1999). Re-examining the components of transformational and transactional leadership using the Multifactor Leadership Questionnaire. Journal of Occupational and Organizational Psychology, 72(4), 441–462.. https://doi.org/10.1348/096317999166789',
+      doi: '10.1348/096317999166789'
+    },
   },
   {
     id: 17,
@@ -2058,6 +2152,10 @@ const SCALE_LIBRARY = [
       { num:23, text:'I can get through difficult times at work because I\'ve experienced difficulty before.', dim:'Optimism' },
       { num:24, text:'I feel I can handle many things at a time at this job.', dim:'Optimism' },
     ],
+    citation: {
+      apa: 'Luthans, F., Avolio, B. J., Avey, J. B., & Norman, S. M. (2007). Positive psychological capital: Measurement and relationship with performance and satisfaction. Personnel Psychology, 60(3), 541–572.. https://doi.org/10.1111/j.1744-6570.2007.00083.x',
+      doi: '10.1111/j.1744-6570.2007.00083.x'
+    },
   },
   {
     id: 18,
@@ -2081,6 +2179,10 @@ const SCALE_LIBRARY = [
       { num:9, text:'If I am in trouble, I can usually think of a solution.' },
       { num:10, text:'I can usually handle whatever comes my way.' },
     ],
+    citation: {
+      apa: 'Schwarzer, R., Bäßler, J., Kwiatek, P., Schröder, K., & Zhang, J. X. (1997). The assessment of optimistic self-beliefs: Comparison of the German, Spanish, and Chinese versions of the General Self-Efficacy Scale. Applied Psychology: An International Review, 46(1), 69–88.. https://doi.org/10.1111/j.1464-0597.1997.tb01096.x',
+      doi: '10.1111/j.1464-0597.1997.tb01096.x'
+    },
   },
   {
     id: 19,
@@ -2104,6 +2206,10 @@ const SCALE_LIBRARY = [
       { num:9, text:'In the last month, how often have you felt difficulties were piling up so high that you could not overcome them?' },
       { num:10, text:'In the last month, how often have you been able to successfully manage day-to-day problems and annoyances?', reversed:true },
     ],
+    citation: {
+      apa: 'Cohen, S., Kamarck, T., & Mermelstein, R. (1983). A global measure of perceived stress. Journal of Health and Social Behavior, 24(4), 385–396.. https://doi.org/10.2307/2136404',
+      doi: '10.2307/2136404'
+    },
   },
   {
     id: 20,
@@ -2127,6 +2233,10 @@ const SCALE_LIBRARY = [
       { num:9, text:'I certainly feel useless at times.', reversed:true },
       { num:10, text:'At times I think I am no good at all.', reversed:true },
     ],
+    citation: {
+      apa: 'Rosenberg, M., Schooler, C., Schoenbach, C., & Rosenberg, F. (1995). Global self-esteem and specific self-esteem: Different concepts, different outcomes. American Sociological Review, 60(1), 141–156.. https://doi.org/10.2307/2096350',
+      doi: '10.2307/2096350'
+    },
   },
   {
     id: 21,
@@ -2145,6 +2255,10 @@ const SCALE_LIBRARY = [
       { num:4, text:'So far I have gotten the important things I want in life.' },
       { num:5, text:'If I could live my life over, I would change almost nothing.' },
     ],
+    citation: {
+      apa: 'Diener, E., Emmons, R. A., Larsen, R. J., & Griffin, S. (1985). The Satisfaction with Life Scale. Journal of Personality Assessment, 49(1), 71–75.. https://doi.org/10.1207/s15327752jpa4901_13',
+      doi: '10.1207/s15327752jpa4901_13'
+    },
   },
   {
     id: 22,
@@ -2166,6 +2280,10 @@ const SCALE_LIBRARY = [
       { num:7, text:'I am optimistic about my future.' },
       { num:8, text:'People respect me.' },
     ],
+    citation: {
+      apa: 'Diener, E., Wirtz, D., Tov, W., Kim-Prieto, C., Choi, D., Oishi, S., & Biswas-Diener, R. (2010). New well-being measures: Short scales to assess flourishing and positive and negative feelings. Social Indicators Research, 97(2), 143–156.. https://doi.org/10.1007/s11205-009-9493-y',
+      doi: '10.1007/s11205-009-9493-y'
+    },
   },
   {
     id: 23,
@@ -2195,6 +2313,10 @@ const SCALE_LIBRARY = [
       { num:15, text:'I can always calm down quickly when I am very angry.', dim:'Regulation of Emotion' },
       { num:16, text:'I have good control of my own emotions.', dim:'Regulation of Emotion' },
     ],
+    citation: {
+      apa: 'Wong, C. S., & Law, K. S. (2002). The effects of leader and follower emotional intelligence on performance and attitude: An exploratory study. The Leadership Quarterly, 13(3), 243–274.. https://doi.org/10.1016/S1048-9843(02)00099-1',
+      doi: '10.1016/S1048-9843(02)00099-1'
+    },
   },
   {
     id: 24,
@@ -2216,6 +2338,10 @@ const SCALE_LIBRARY = [
       { num:7, text:'My interests change from year to year.', dim:'Consistency of Interest', reversed:true },
       { num:8, text:'I am diligent. I never give up.', dim:'Perseverance of Effort' },
     ],
+    citation: {
+      apa: 'Duckworth, A. L., & Quinn, P. D. (2009). Development and validation of the Short Grit Scale (GRIT-S). Journal of Personality Assessment, 91(2), 166–174.. https://doi.org/10.1080/00223890802634290',
+      doi: '10.1080/00223890802634290'
+    },
   },
   {
     id: 25,
@@ -2249,6 +2375,10 @@ const SCALE_LIBRARY = [
       { num:19, text:'Active', dim:'Positive Affect' },
       { num:20, text:'Afraid', dim:'Negative Affect' },
     ],
+    citation: {
+      apa: 'Watson, D., Clark, L. A., & Tellegen, A. (1988). Development and validation of brief measures of positive and negative affect: The PANAS scales. Journal of Personality and Social Psychology, 54(6), 1063–1070.. https://doi.org/10.1037/0022-3514.54.6.1063',
+      doi: '10.1037/0022-3514.54.6.1063'
+    },
   },
   {
     id: 26,
@@ -2283,6 +2413,10 @@ const SCALE_LIBRARY = [
       { num:20, text:'I felt scared without any good reason.', dim:'Anxiety' },
       { num:21, text:'I felt that life was meaningless.', dim:'Depression' },
     ],
+    citation: {
+      apa: 'Lovibond, P. F., & Lovibond, S. H. (1995). The structure of negative emotional states: Comparison of the Depression Anxiety Stress Scales (DASS) with the Beck Depression and Anxiety Inventories. Behaviour Research and Therapy, 33(3), 335–343.. https://doi.org/10.1016/0005-7967(94)00075-U',
+      doi: '10.1016/0005-7967(94)00075-U'
+    },
   },
   {
     id: 27,
@@ -2302,6 +2436,10 @@ const SCALE_LIBRARY = [
       { num:5, text:'I usually come through difficult times with little trouble.' },
       { num:6, text:'I tend to take a long time to get over set-backs in my life.', reversed:true },
     ],
+    citation: {
+      apa: 'Smith, B. W., Dalen, J., Wiggins, K., Tooley, E., Christopher, P., & Bernard, J. (2008). The brief resilience scale: Assessing the ability to bounce back. International Journal of Behavioral Medicine, 15(3), 194–200.. https://doi.org/10.1080/10705500802222972',
+      doi: '10.1080/10705500802222972'
+    },
   },
   {
     id: 28,
@@ -2323,6 +2461,10 @@ const SCALE_LIBRARY = [
       { num:7, text:'You are a certain kind of person, and there is not much that can be done to really change that.', reversed:true },
       { num:8, text:'You can always change basic things about the kind of person you are.' },
     ],
+    citation: {
+      apa: 'Dweck, C. S., & Leggett, E. L. (1988). A social-cognitive approach to motivation and personality. Psychological Review, 95(2), 256–273.. https://doi.org/10.1037/0033-295X.95.2.256',
+      doi: '10.1037/0033-295X.95.2.256'
+    },
   },
   {
     id: 29,
@@ -2348,6 +2490,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'It would be easy for me to become skillful at using [the system].', dim:'Perceived Ease of Use' },
       { num:12, text:'I would find [the system] easy to use.', dim:'Perceived Ease of Use' },
     ],
+    citation: {
+      apa: 'Davis, F. D. (1989). Perceived usefulness, perceived ease of use, and user acceptance of information technology. MIS Quarterly, 13(3), 319–340.. https://doi.org/10.2307/249008',
+      doi: '10.2307/249008'
+    },
   },
   {
     id: 30,
@@ -2383,6 +2529,10 @@ const SCALE_LIBRARY = [
       { num:21, text:'XYZ has your best interest at heart.', dim:'Empathy' },
       { num:22, text:'Employees of XYZ understand your specific needs.', dim:'Empathy' },
     ],
+    citation: {
+      apa: 'Parasuraman, A., Zeithaml, V. A., & Berry, L. L. (1988). SERVQUAL: A multiple-item scale for measuring consumer perceptions of service quality. Journal of Retailing, 64(1), 12–40.. Retrieved from https://scholar.google.com/scholar?q=SERVQUAL+A+multiple-item+scale+Parasuraman+Zeithaml+Berry+1988',
+      url: 'https://scholar.google.com/scholar?q=SERVQUAL+A+multiple-item+scale+Parasuraman+Zeithaml+Berry+1988'
+    },
   },
   {
     id: 31,
@@ -2406,6 +2556,10 @@ const SCALE_LIBRARY = [
       { num:9, text:'This brand would compensate me in some way for a problem with the product.', dim:'Brand Intentions' },
       { num:10, text:'This brand would not take advantage of me.', dim:'Brand Intentions' },
     ],
+    citation: {
+      apa: 'Chaudhuri, A., & Holbrook, M. B. (2001). The chain of effects from brand trust and brand affect to brand performance: The role of brand loyalty. Journal of Marketing, 65(2), 81–93.. https://doi.org/10.1509/jmkg.65.2.81.18255',
+      doi: '10.1509/jmkg.65.2.81.18255'
+    },
   },
   {
     id: 32,
@@ -2425,6 +2579,10 @@ const SCALE_LIBRARY = [
       { num:5, text:'I would recommend green products to friends and family.' },
       { num:6, text:'I am actively looking for green products to buy.' },
     ],
+    citation: {
+      apa: 'Chen, Y. S., & Chang, C. H. (2012). Enhance green purchase intentions: The roles of green perceived value, green perceived risk, and green trust. Management Decision, 50(3), 502–520.. https://doi.org/10.1108/00251741211216250',
+      doi: '10.1108/00251741211216250'
+    },
   },
   {
     id: 33,
@@ -2441,6 +2599,10 @@ const SCALE_LIBRARY = [
       { num:2, text:'The probability that I would buy this product is high.' },
       { num:3, text:'My willingness to buy this product is very strong.' },
     ],
+    citation: {
+      apa: 'Dodds, W. B., Monroe, K. B., & Grewal, D. (1991). Effects of price, brand, and store information on buyers\. Journal of Marketing Research, 28(3), 307–319.. https://doi.org/10.2307/3172866',
+      doi: '10.2307/3172866'
+    },
   },
   {
     id: 34,
@@ -2459,6 +2621,10 @@ const SCALE_LIBRARY = [
       { num:4, text:'Compared to my expectations, this company has exceeded them.' },
       { num:5, text:'Overall, I am happy with the service provided by this company.' },
     ],
+    citation: {
+      apa: 'Fornell, C., Johnson, M. D., Anderson, E. W., Cha, J., & Bryant, B. E. (1996). The American Customer Satisfaction Index: Nature, purpose, and findings. Journal of Marketing, 60(4), 7–18.. https://doi.org/10.2307/1251898',
+      doi: '10.2307/1251898'
+    },
   },
   {
     id: 35,
@@ -2484,6 +2650,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'My online reviews include specific product features.', dim:'eWOM Content' },
       { num:12, text:'I provide useful information that helps others make purchase decisions.', dim:'eWOM Content' },
     ],
+    citation: {
+      apa: 'Goyette, I., Ricard, L., Bergeron, J., & Marticotte, F. (2010). e-WOM scale: Word-of-mouth measurement scale for e-services context. Canadian Journal of Administrative Sciences, 27(1), 5–23.. https://doi.org/10.1002/cjas.129',
+      doi: '10.1002/cjas.129'
+    },
   },
   {
     id: 36,
@@ -2525,6 +2695,10 @@ const SCALE_LIBRARY = [
       { num:27, text:'I don\'t know; I can\'t understand what I am doing in school.', dim:'Amotivation' },
       { num:28, text:'I can\'t see why I should bother doing to school.', dim:'Amotivation' },
     ],
+    citation: {
+      apa: 'Vallerand, R. J., Pelletier, L. G., Blais, M. R., Brière, N. M., Senécal, C., & Vallières, E. F. (1992). The Academic Motivation Scale: A measure of intrinsic, extrinsic, and amotivation in education. Educational and Psychological Measurement, 52(4), 1003–1017.. https://doi.org/10.1177/0013164492052004025',
+      doi: '10.1177/0013164492052004025'
+    },
   },
   {
     id: 37,
@@ -2546,6 +2720,10 @@ const SCALE_LIBRARY = [
       { num:7, text:'I am confident in my ability to learn the material in this course.' },
       { num:8, text:'I believe I will receive an excellent grade in this class.' },
     ],
+    citation: {
+      apa: 'Pintrich, P. R., Smith, D. A. F., García, T., & McKeachie, W. J. (1993). Reliability and predictive validity of the Motivated Strategies for Learning Questionnaire (MSLQ). Educational and Psychological Measurement, 53(3), 801–813.. https://doi.org/10.1177/0013164493053003024',
+      doi: '10.1177/0013164493053003024'
+    },
   },
   {
     id: 38,
@@ -2574,6 +2752,10 @@ const SCALE_LIBRARY = [
       { num:14, text:'I like being at school.', dim:'Emotional Engagement' },
       { num:15, text:'I feel proud of belonging to this school.', dim:'Emotional Engagement' },
     ],
+    citation: {
+      apa: 'Fredricks, J. A., Blumenfeld, P. C., & Paris, A. H. (2004). School engagement: Potential of the concept, state of the evidence. Review of Educational Research, 74(1), 59–109.. https://doi.org/10.3102/00346543074001059',
+      doi: '10.3102/00346543074001059'
+    },
   },
   {
     id: 39,
@@ -2600,6 +2782,10 @@ const SCALE_LIBRARY = [
       { num:12, text:'I\'m OK with the unpredictability of studying.', dim:'Uncertainty Tolerance' },
       { num:13, text:'I can tolerate the ups and downs associated with my study.', dim:'Uncertainty Tolerance' },
     ],
+    citation: {
+      apa: 'Martin, A. J., & Marsh, H. W. (2006). Academic resilience and its psychological and educational correlates: A construct validity approach. Psychology in the Schools, 43(3), 267–281.. https://doi.org/10.1002/pits.20149',
+      doi: '10.1002/pits.20149'
+    },
   },
   {
     id: 40,
@@ -2635,6 +2821,10 @@ const SCALE_LIBRARY = [
       { num:21, text:'I make sure I keep up with the weekly readings and assignments for this course.', dim:'Time and Study Environment' },
       { num:22, text:'I attend class regularly.', dim:'Time and Study Environment' },
     ],
+    citation: {
+      apa: 'Pintrich, P. R., Smith, D. A. F., García, T., & McKeachie, W. J. (1993). Reliability and predictive validity of the Motivated Strategies for Learning Questionnaire (MSLQ). Educational and Psychological Measurement, 53(3), 801–813.. https://doi.org/10.1177/0013164493053003024',
+      doi: '10.1177/0013164493053003024'
+    },
   },
   {
     id: 41,
@@ -2658,6 +2848,10 @@ const SCALE_LIBRARY = [
       { num:9, text:'Has the best interests of employees in mind.' },
       { num:10, text:'When making decisions, asks "what is the right thing to do?"' },
     ],
+    citation: {
+      apa: 'Brown, M. E., Treviño, L. K., & Harrison, D. A. (2005). Ethical leadership: A social learning perspective for construct development and testing. Organizational Behavior and Human Decision Processes, 97(2), 117–134.. https://doi.org/10.1016/j.obhdp.2005.03.002',
+      doi: '10.1016/j.obhdp.2005.03.002'
+    },
   },
   {
     id: 42,
@@ -2678,6 +2872,10 @@ const SCALE_LIBRARY = [
       { num:6, text:'My manager is available to help me with work-related problems.' },
       { num:7, text:'My manager makes my career development a priority.' },
     ],
+    citation: {
+      apa: 'Liden, R. C., Wayne, S. J., Meuser, J. D., Hu, J., Wu, J., & Liao, C. (2015). Servant leadership: Validation of a short form of the SL-28. The Leadership Quarterly, 26(2), 254–269.. https://doi.org/10.1016/j.leaqua.2014.12.002',
+      doi: '10.1016/j.leaqua.2014.12.002'
+    },
   },
   {
     id: 43,
@@ -2698,6 +2896,10 @@ const SCALE_LIBRARY = [
       { num:6, text:'Doubted your judgment on a matter within your own area of expertise.' },
       { num:7, text:'Made unwanted attempts to draw you into discussion of personal matters.' },
     ],
+    citation: {
+      apa: 'Cortina, L. M., Magley, V. J., Williams, J. H., & Langhout, R. D. (2001). Incivility in the workplace: Incidence and impact. Journal of Occupational Health Psychology, 6(1), 64–80.. https://doi.org/10.1037/1076-8998.6.1.64',
+      doi: '10.1037/1076-8998.6.1.64'
+    },
   },
   {
     id: 44,
@@ -2723,6 +2925,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'I know exactly what is expected of me.', dim:'Role Ambiguity', reversed:true },
       { num:12, text:'I receive clear explanation of what has to be done.', dim:'Role Ambiguity', reversed:true },
     ],
+    citation: {
+      apa: 'Rizzo, J. R., House, R. J., & Lirtzman, S. I. (1970). Role conflict and ambiguity in complex organizations. Administrative Science Quarterly, 15(2), 150–163.. https://doi.org/10.2307/2391486',
+      doi: '10.2307/2391486'
+    },
   },
   {
     id: 45,
@@ -2751,6 +2957,10 @@ const SCALE_LIBRARY = [
       { num:14, text:'I find myself doing things without paying attention.' },
       { num:15, text:'I snack without being aware that I\'m eating.' },
     ],
+    citation: {
+      apa: 'Brown, K. W., & Ryan, R. M. (2003). The benefits of being present: Mindfulness and its role in psychological well-being. Journal of Personality and Social Psychology, 84(4), 822–848.. https://doi.org/10.1037/0022-3514.84.4.822',
+      doi: '10.1037/0022-3514.84.4.822'
+    },
   },
   {
     id: 46,
@@ -2770,6 +2980,10 @@ const SCALE_LIBRARY = [
       { num:5, text:'As I get older, I find myself more able to appreciate the people, events, and situations that have been part of my life history.' },
       { num:6, text:'Long amounts of time can go by before I feel grateful to something or someone.', reversed:true },
     ],
+    citation: {
+      apa: 'McCullough, M. E., Emmons, R. A., & Tsang, J. (2002). The grateful disposition: A conceptual and empirical topography. Journal of Personality and Social Psychology, 82(1), 112–127.. https://doi.org/10.1037/0022-3514.82.1.112',
+      doi: '10.1037/0022-3514.82.1.112'
+    },
   },
   {
     id: 47,
@@ -2799,6 +3013,10 @@ const SCALE_LIBRARY = [
       { num:15, text:'I worry all the time.' },
       { num:16, text:'I worry about projects until they are all done.' },
     ],
+    citation: {
+      apa: 'Meyer, T. J., Miller, M. L., Metzger, R. L., & Borkovec, T. D. (1990). Development and validation of the Penn State Worry Questionnaire. Behaviour Research and Therapy, 28(6), 487–495.. https://doi.org/10.1016/0005-7967(90)90135-6',
+      doi: '10.1016/0005-7967(90)90135-6'
+    },
   },
   {
     id: 48,
@@ -2816,6 +3034,10 @@ const SCALE_LIBRARY = [
       { num:3, text:'I will not buy other brands if [this brand] is available in the store.' },
       { num:4, text:'[This brand] is the only brand I purchase in this category.' },
     ],
+    citation: {
+      apa: 'Yoo, B., & Donthu, N. (2001). Developing and validating a multidimensional consumer-based brand equity scale. Journal of Business Research, 52(1), 1–14.. https://doi.org/10.1016/S0148-2963(99)00098-3',
+      doi: '10.1016/S0148-2963(99)00098-3'
+    },
   },
   {
     id: 49,
@@ -2846,6 +3068,10 @@ const SCALE_LIBRARY = [
       { num:16, text:'We should buy from foreign countries only those products that we cannot obtain within our own country.' },
       { num:17, text:'[Domestic] consumers who purchase products made in other countries are responsible for putting their fellow [domestic people] out of work.' },
     ],
+    citation: {
+      apa: 'Shimp, T. A., & Sharma, S. (1987). Consumer ethnocentrism: Construction and validation of the CETSCALE. Journal of Marketing Research, 24(3), 280–289.. https://doi.org/10.1177/002224378702400304',
+      doi: '10.1177/002224378702400304'
+    },
   },
   {
     id: 50,
@@ -2868,6 +3094,10 @@ const SCALE_LIBRARY = [
       { num:8, text:'I carefully plan most of my purchases.', reversed:true },
       { num:9, text:'Sometimes I am a bit reckless about what I buy.' },
     ],
+    citation: {
+      apa: 'Rook, D. W., & Fisher, R. J. (1995). Normative influences on impulsive buying behavior. Journal of Consumer Research, 22(3), 305–313.. https://doi.org/10.1086/209452',
+      doi: '10.1086/209452'
+    },
   },
   {
     id: 51,
@@ -2893,6 +3123,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'How well can you establish a classroom management system with each group of students?', dim:'Efficacy for Classroom Management' },
       { num:12, text:'How much can you do to calm a student who is disruptive or noisy?', dim:'Efficacy for Classroom Management' },
     ],
+    citation: {
+      apa: 'Tschannen-Moran, M., & Hoy, A. W. (2001). Teacher efficacy: Capturing an elusive construct. Teaching and Teacher Education, 17(7), 783–805.. https://doi.org/10.1016/S0742-051X(01)00036-1',
+      doi: '10.1016/S0742-051X(01)00036-1'
+    },
   },
   {
     id: 52,
@@ -2926,6 +3160,10 @@ const SCALE_LIBRARY = [
       { num:19, text:'I schedule my day\'s activities in advance.', reversed:true },
       { num:20, text:'I get important tasks done when they are supposed to be done.', reversed:true },
     ],
+    citation: {
+      apa: 'Lay, C. H. (1986). At last, my research article on procrastination. Journal of Research in Personality, 20(4), 474–495.. https://doi.org/10.1016/0092-6566(86)90127-3',
+      doi: '10.1016/0092-6566(86)90127-3'
+    },
   },
   {
     id: 53,
@@ -2956,6 +3194,10 @@ const SCALE_LIBRARY = [
       { num:16, text:'I can spot a good opportunity long before others can.' },
       { num:17, text:'If I see someone in trouble, I help out in any way I can.' },
     ],
+    citation: {
+      apa: 'Bateman, T. S., & Crant, J. M. (1993). The proactive component of organizational behavior: A measure and correlates. Journal of Organizational Behavior, 14(2), 103–118.. https://doi.org/10.1002/job.4030140202',
+      doi: '10.1002/job.4030140202'
+    },
   },
   {
     id: 54,
@@ -2975,6 +3217,10 @@ const SCALE_LIBRARY = [
       { num:5, text:'When someone praises this organization, it feels like a personal compliment.' },
       { num:6, text:'If a story in the media criticized this organization, I would feel embarrassed.' },
     ],
+    citation: {
+      apa: 'Mael, F., & Ashforth, B. E. (1992). Alumni and their alma mater: A partial test of the reformulated model of organizational identification. Journal of Organizational Behavior, 13(2), 103–123.. https://doi.org/10.1002/job.4030130202',
+      doi: '10.1002/job.4030130202'
+    },
   },
   {
     id: 55,
@@ -2998,6 +3244,10 @@ const SCALE_LIBRARY = [
       { num:9, text:'I am not learning and growing.', dim:'Learning', reversed:true },
       { num:10, text:'I keep acquiring new knowledge and skills.', dim:'Learning' },
     ],
+    citation: {
+      apa: 'Porath, C., Spreitzer, G., Gibson, C., & Garnett, F. G. (2012). Thriving at work: Toward its measurement, construct validation, and theoretical refinement. Journal of Organizational Behavior, 33(2), 250–275.. https://doi.org/10.1002/job.756',
+      doi: '10.1002/job.756'
+    },
   },
   {
     id: 56,
@@ -3021,6 +3271,10 @@ const SCALE_LIBRARY = [
       { num:9, text:'When I am feeling negative emotions, I make sure not to express them.', dim:'Expressive Suppression' },
       { num:10, text:'When I want to feel less negative emotion, I change the way I\'m thinking about the situation.', dim:'Cognitive Reappraisal' },
     ],
+    citation: {
+      apa: 'Gross, J. J., & John, O. P. (2003). Individual differences in two emotion regulation strategies: Implications for affect, relationships, and well-being. Journal of Personality and Social Psychology, 85(2), 348–362.. https://doi.org/10.1037/0022-3514.85.2.348',
+      doi: '10.1037/0022-3514.85.2.348'
+    },
   },
   {
     id: 57,
@@ -3047,6 +3301,10 @@ const SCALE_LIBRARY = [
       { num:12, text:'Sometimes I can\'t stop myself from doing something, even if I know it is wrong.', reversed:true },
       { num:13, text:'I often act without thinking through all the alternatives.', reversed:true },
     ],
+    citation: {
+      apa: 'Tangney, J. P., Baumeister, R. F., & Boone, A. L. (2004). High self-control predicts good adjustment, less pathology, better grades, and interpersonal success. Journal of Personality, 72(2), 271–324.. https://doi.org/10.1111/j.0022-3506.2004.00263.x',
+      doi: '10.1111/j.0022-3506.2004.00263.x'
+    },
   },
   {
     id: 58,
@@ -3070,6 +3328,10 @@ const SCALE_LIBRARY = [
       { num:9, text:'When I miss out on a planned get-together it bothers me.' },
       { num:10, text:'When I go on vacation, I continue to keep tabs on what my friends are doing.' },
     ],
+    citation: {
+      apa: 'Przybylski, A. K., Murayama, K., DeHaan, C. R., & Gladwell, V. (2013). Motivational, emotional, and behavioral correlates of fear of missing out. Computers in Human Behavior, 29(4), 1841–1848.. https://doi.org/10.1016/j.chb.2013.02.014',
+      doi: '10.1016/j.chb.2013.02.014'
+    },
   },
   {
     id: 59,
@@ -3095,6 +3357,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'I tend to not feel too concerned with morality.', dim:'Psychopathy' },
       { num:12, text:'I tend to expect special favors from others.', dim:'Narcissism' },
     ],
+    citation: {
+      apa: 'Jonason, P. K., & Webster, G. D. (2010). The dirty dozen: A concise measure of the dark triad. Psychological Assessment, 22(2), 420–432.. https://doi.org/10.1037/a0019265',
+      doi: '10.1037/a0019265'
+    },
   },
   {
     id: 60,
@@ -3113,6 +3379,10 @@ const SCALE_LIBRARY = [
       { num:4, text:'Consider [company] your first choice to buy [service] in the next few years.' },
       { num:5, text:'Do more business with [company] in the next few years.' },
     ],
+    citation: {
+      apa: 'Zeithaml, V. A., Berry, L. L., & Parasuraman, A. (1996). The behavioral consequences of service quality. Journal of Marketing, 60(2), 31–46.. https://doi.org/10.1177/002224299606000203',
+      doi: '10.1177/002224299606000203'
+    },
   },
 {
     id: 61,
@@ -3130,6 +3400,10 @@ const SCALE_LIBRARY = [
       { num:3, text:'I would never shop at more than one store to take advantage of low prices.', reversed:true },
       { num:4, text:'The time it takes to find low prices is usually not worth it.', reversed:true },
     ],
+    citation: {
+      apa: 'Lichtenstein, D. R., Ridgway, N. M., & Netemeyer, R. G. (1993). Price perceptions and consumer shopping behavior: A field study. Journal of Marketing Research, 30(2), 234–245.. https://doi.org/10.1177/002224379303000208',
+      doi: '10.1177/002224379303000208'
+    },
   },
   {
     id: 62,
@@ -3155,6 +3429,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'I am interested in other customers\' opinions about [brand/company].', dim:'Social Connection' },
       { num:12, text:'I like connecting with other [brand/company] customers.', dim:'Social Connection' },
     ],
+    citation: {
+      apa: 'Vivek, S. D., Beatty, S. E., Dalela, V., & Morgan, R. M. (2014). A generalized multidimensional scale for measuring customer engagement. Journal of Marketing Theory and Practice, 22(4), 401–420.. https://doi.org/10.2753/MTP1069-6679220404',
+      doi: '10.2753/MTP1069-6679220404'
+    },
   },
   {
     id: 63,
@@ -3180,6 +3458,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'My goal in this class is to avoid performing poorly.', dim:'Performance-Avoidance' },
       { num:12, text:'My aim is to avoid doing worse than other students.', dim:'Performance-Avoidance' },
     ],
+    citation: {
+      apa: 'Elliot, A. J., & McGregor, H. A. (2001). A 2×2 achievement goal framework. Journal of Personality and Social Psychology, 80(3), 501–519.. https://doi.org/10.1037/0022-3514.80.3.501',
+      doi: '10.1037/0022-3514.80.3.501'
+    },
   },
   {
     id: 64,
@@ -3211,6 +3493,10 @@ const SCALE_LIBRARY = [
       { num:17, text:'I wish I were in a different school.', reversed:true },
       { num:18, text:'I am included in lots of activities at school.' },
     ],
+    citation: {
+      apa: 'Goodenow, C. (1993). The Psychological Sense of School Membership (PSSM) scale: Development and preliminary validation. Psychological Reports, 72(3), 657–669.. https://doi.org/10.2466/pr0.1993.72.3.657',
+      doi: '10.2466/pr0.1993.72.3.657'
+    },
   },
   {
     id: 65,
@@ -3236,6 +3522,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'I am capable of coping with most of my problems.' },
       { num:12, text:'There are times when things look pretty bleak and hopeless to me.', reversed:true },
     ],
+    citation: {
+      apa: 'Judge, T. A., Erez, A., Bono, J. E., & Thoresen, C. J. (2003). The core self-evaluations scale: Development of a measure. Personnel Psychology, 56(2), 303–331.. https://doi.org/10.1111/j.1744-6570.2003.tb00152.x',
+      doi: '10.1111/j.1744-6570.2003.tb00152.x'
+    },
   },
   {
     id: 66,
@@ -3261,6 +3551,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'When I\'m upset, I try to keep my emotions in balance.', dim:'Mindfulness' },
       { num:12, text:'When I\'m feeling down, I tend to think of all the ways I\'m inadequate.', reversed:true, dim:'Over-Identification' },
     ],
+    citation: {
+      apa: 'Raes, F., Pommier, E., Neff, K. D., & Van Gucht, D. (2011). Construction and factorial validation of a short form of the Self-Compassion Scale. Clinical Psychology & Psychotherapy, 18(3), 250–255.. https://doi.org/10.1002/cpp.702',
+      doi: '10.1002/cpp.702'
+    },
   },
   {
     id: 67,
@@ -3286,6 +3580,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'My family is willing to help me make decisions.', dim:'Family' },
       { num:12, text:'I can talk about my problems with my friends.', dim:'Friends' },
     ],
+    citation: {
+      apa: 'Zimet, G. D., Dahlem, N. W., Zimet, S. G., & Farley, G. K. (1988). The Multidimensional Scale of Perceived Social Support. Journal of Personality Assessment, 52(1), 30–41.. https://doi.org/10.1207/s15327752jpa5201_2',
+      doi: '10.1207/s15327752jpa5201_2'
+    },
   },
   {
     id: 68,
@@ -3311,6 +3609,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'I should be able to organize everything in advance.', dim:'Prospective Anxiety' },
       { num:12, text:'I must get away from all uncertain situations.', dim:'Inhibitory Anxiety' },
     ],
+    citation: {
+      apa: 'Carleton, R. N., Norton, M. A. P. J., & Asmundson, G. J. G. (2007). Fearing the unknown: A short version of the Intolerance of Uncertainty Scale. Journal of Anxiety Disorders, 21(1), 105–117.. https://doi.org/10.1016/j.janxdis.2006.03.014',
+      doi: '10.1016/j.janxdis.2006.03.014'
+    },
   },
   {
     id: 69,
@@ -3342,6 +3644,10 @@ const SCALE_LIBRARY = [
       { num:17, text:'It is important that people believe I am sincere in what I say and do.', dim:'Apparent Sincerity' },
       { num:18, text:'I try to show a genuine interest in other people.', dim:'Apparent Sincerity' },
     ],
+    citation: {
+      apa: 'Ferris, G. R., Treadway, D. C., Kolodinsky, R. W., Hochwarter, W. A., Kacmar, C. J., Douglas, C., & Frink, D. D. (2005). Development and validation of the Political Skill Inventory. Journal of Management, 31(1), 126–152.. https://doi.org/10.1177/0149206304271386',
+      doi: '10.1177/0149206304271386'
+    },
   },
   {
     id: 70,
@@ -3364,6 +3670,10 @@ const SCALE_LIBRARY = [
       { num:8, text:'This person is willing to learn from others.', dim:'Teachability' },
       { num:9, text:'This person is receptive to new information.', dim:'Teachability' },
     ],
+    citation: {
+      apa: 'Owens, B. P., Johnson, M. D., & Mitchell, T. R. (2013). Expressed humility in organizations: Implications for performance, teams, and leadership. Organization Science, 24(5), 1517–1538.. https://doi.org/10.1287/orsc.1120.0795',
+      doi: '10.1287/orsc.1120.0795'
+    },
   },
   {
     id: 71,
@@ -3383,6 +3693,10 @@ const SCALE_LIBRARY = [
       { num:5, text:'I am worried that my job will get worse in the future.', dim:'Qualitative Job Insecurity' },
       { num:6, text:'I worry that the opportunities for advancement in my job will be reduced in the future.', dim:'Qualitative Job Insecurity' },
     ],
+    citation: {
+      apa: 'Hellgren, J., Sverke, M., & Isaksson, K. (1999). A two-dimensional approach to job insecurity: Consequences for employee attitudes and well-being. European Journal of Work and Organizational Psychology, 8(2), 179–195.. https://doi.org/10.1080/135943299398311',
+      doi: '10.1080/135943299398311'
+    },
   },
   {
     id: 72,
@@ -3412,6 +3726,10 @@ const SCALE_LIBRARY = [
       { num:15, text:'I feel free to decide what to do.', dim:'Control' },
       { num:16, text:'I feel free to determine my own schedule.', dim:'Control' },
     ],
+    citation: {
+      apa: 'Sonnentag, S., & Fritz, C. (2007). The Recovery Experience Questionnaire: Development and validation of a measure for assessing recuperation and unwinding from work. Journal of Occupational Health Psychology, 12(3), 204–221.. https://doi.org/10.1037/1076-8998.12.3.204',
+      doi: '10.1037/1076-8998.12.3.204'
+    },
   },
   {
     id: 73,
@@ -3437,6 +3755,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'This brand does not make me think.', reversed:true, dim:'Intellectual' },
       { num:12, text:'This brand stimulates my curiosity and problem solving.', dim:'Intellectual' },
     ],
+    citation: {
+      apa: 'Brakus, J. J., Schmitt, B. H., & Zarantonello, L. (2009). Brand experience: What is it? How is it measured? Does it affect loyalty?. Journal of Marketing, 73(3), 52–68.. https://doi.org/10.1509/jmkg.73.3.052',
+      doi: '10.1509/jmkg.73.3.052'
+    },
   },
   {
     id: 74,
@@ -3469,6 +3791,10 @@ const SCALE_LIBRARY = [
       { num:18, text:'This product would not last a long time.', reversed:true, dim:'Functional Value — Quality' },
       { num:19, text:'This product would perform consistently.', dim:'Functional Value — Quality' },
     ],
+    citation: {
+      apa: 'Sweeney, J. C., & Soutar, G. N. (2001). Consumer perceived value: The development of a multiple item scale. Journal of Retailing, 77(2), 203–220.. https://doi.org/10.1016/S0022-4359(01)00041-0',
+      doi: '10.1016/S0022-4359(01)00041-0'
+    },
   },
   {
     id: 75,
@@ -3486,6 +3812,10 @@ const SCALE_LIBRARY = [
       { num:3, text:'I am good at dealing with pressure at school.' },
       { num:4, text:'I believe I can deal with most academic difficulties.' },
     ],
+    citation: {
+      apa: 'Martin, A. J., & Marsh, H. W. (2008). Academic buoyancy: Towards an understanding of students\. Journal of School Psychology, 46(1), 53–83.. https://doi.org/10.1016/j.jsp.2007.01.002',
+      doi: '10.1016/j.jsp.2007.01.002'
+    },
   },
   {
     id: 76,
@@ -3517,6 +3847,10 @@ const SCALE_LIBRARY = [
       { num:17, text:'At work, I feel that the people I work with care about me.', dim:'Relatedness Need Satisfaction' },
       { num:18, text:'At work, I feel that the people I work with trust me.', dim:'Relatedness Need Satisfaction' },
     ],
+    citation: {
+      apa: 'Van den Broeck, A., Vansteenkiste, M., De Witte, H., Soenens, B., & Lens, W. (2010). Capturing autonomy, competence, and relatedness at work: Construction and initial validation of the Work-related Basic Need Satisfaction scale. Journal of Occupational and Organizational Psychology, 83(4), 981–1002.. https://doi.org/10.1348/096317909X481382',
+      doi: '10.1348/096317909X481382'
+    },
   },
   {
     id: 77,
@@ -3546,6 +3880,10 @@ const SCALE_LIBRARY = [
       { num:15, text:'Asks you to take positions that support your core values.', dim:'Internalized Moral Perspective' },
       { num:16, text:'Makes difficult decisions based on high standards of ethical conduct.', dim:'Internalized Moral Perspective' },
     ],
+    citation: {
+      apa: 'Walumbwa, F. O., Avolio, B. J., Gardner, W. L., Wernsing, T. S., & Peterson, S. J. (2008). Authentic leadership: Development and validation of a theory-based measure. Journal of Management, 34(1), 89–126.. https://doi.org/10.1177/0149206307308913',
+      doi: '10.1177/0149206307308913'
+    },
   },
   {
     id: 78,
@@ -3571,6 +3909,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'I explained that I had promised someone else not to share the information.', dim:'Rationalized Hiding' },
       { num:12, text:'I indicated that sharing the knowledge with [coworker] wasn\'t in the best interest of others.', dim:'Rationalized Hiding' },
     ],
+    citation: {
+      apa: 'Connelly, C. E., Zweig, D., Webster, J., & Trougakos, J. P. (2012). Knowledge hiding in organizations. Journal of Organizational Behavior, 33(1), 64–88.. https://doi.org/10.1002/job.737',
+      doi: '10.1002/job.737'
+    },
   },
   {
     id: 79,
@@ -3591,6 +3933,10 @@ const SCALE_LIBRARY = [
       { num:6, text:'Try to actually experience the emotions that I must show.', dim:'Deep Acting' },
       { num:7, text:'Really try to feel the emotions I need to display to others.', dim:'Deep Acting' },
     ],
+    citation: {
+      apa: 'Brotheridge, C. M., & Lee, R. T. (2003). Development and validation of the Emotional Labour Scale. Journal of Occupational and Organizational Psychology, 76(3), 365–379.. https://doi.org/10.1348/096317903769647229',
+      doi: '10.1348/096317903769647229'
+    },
   },
   {
     id: 80,
@@ -3610,6 +3956,10 @@ const SCALE_LIBRARY = [
       { num:5, text:'Things would be better without this change.', reversed:true },
       { num:6, text:'This change will benefit organizational members.' },
     ],
+    citation: {
+      apa: 'Herscovitch, L., & Meyer, J. P. (2002). Commitment to organizational change: Extension of a three-component model. Journal of Applied Psychology, 87(3), 474–487.. https://doi.org/10.1037/0021-9010.87.3.474',
+      doi: '10.1037/0021-9010.87.3.474'
+    },
   },
   {
     id: 81,
@@ -3633,6 +3983,10 @@ const SCALE_LIBRARY = [
       { num:9,  text:'My life has no clear purpose.', reversed:true, dim:'Presence of Meaning' },
       { num:10, text:'I am searching for meaning in my life.', dim:'Search for Meaning' },
     ],
+    citation: {
+      apa: 'Steger, M. F., Frazier, P., Oishi, S., & Kaler, M. (2006). The Meaning in Life Questionnaire: Assessing the presence of and search for meaning in life. Journal of Counseling Psychology, 53(1), 80–93.. https://doi.org/10.1037/0022-0167.53.1.80',
+      doi: '10.1037/0022-0167.53.1.80'
+    },
   },
   {
     id: 82,
@@ -3674,6 +4028,10 @@ const SCALE_LIBRARY = [
       { num:27, text:'When I see someone who badly needs help in an emergency, I go to pieces.', dim:'Personal Distress' },
       { num:28, text:'Before criticizing somebody, I try to imagine how I would feel if I were in their place.', dim:'Perspective Taking' },
     ],
+    citation: {
+      apa: 'Davis, M. H. (1983). Measuring individual differences in empathy: Evidence for a multidimensional approach. Journal of Personality and Social Psychology, 44(1), 113–126.. https://doi.org/10.1037/0022-3514.44.1.113',
+      doi: '10.1037/0022-3514.44.1.113'
+    },
   },
   {
     id: 83,
@@ -3711,6 +4069,10 @@ const SCALE_LIBRARY = [
       { num:23, text:'It would excite me to win a contest.', dim:'BAS — Reward Responsiveness' },
       { num:24, text:'I worry about making mistakes.', dim:'Behavioral Inhibition System (BIS)' },
     ],
+    citation: {
+      apa: 'Carver, C. S., & White, T. L. (1994). Behavioral inhibition, behavioral activation, and affective responses to impending reward and punishment: The BIS/BAS scales. Journal of Personality and Social Psychology, 67(2), 319–333.. https://doi.org/10.1037/0022-3514.67.2.319',
+      doi: '10.1037/0022-3514.67.2.319'
+    },
   },
   {
     id: 84,
@@ -3736,6 +4098,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'I usually find myself worrying about something.' },
       { num:12, text:'I meet the goals that I set for myself.', dim:'Agency' },
     ],
+    citation: {
+      apa: 'Snyder, C. R., Harris, C., Anderson, J. R., Holleran, S. A., Irving, L. M., Sigmon, S. T., Yoshinobu, L., Gibb, J., Langelle, C., & Harney, P. (1991). The will and the ways: Development and validation of an individual-differences measure of hope. Journal of Personality and Social Psychology, 60(4), 570–585.. https://doi.org/10.1037/0022-3514.60.4.570',
+      doi: '10.1037/0022-3514.60.4.570'
+    },
   },
   {
     id: 85,
@@ -3767,6 +4133,10 @@ const SCALE_LIBRARY = [
       { num:17, text:'It\'s enough for me that something gets the job done; I don\'t care how or why it works.', reversed:true },
       { num:18, text:'I usually end up deliberating about issues even when they do not affect me personally.' },
     ],
+    citation: {
+      apa: 'Cacioppo, J. T., Petty, R. E., & Kao, C. F. (1984). The efficient assessment of need for cognition. Journal of Personality Assessment, 48(3), 306–307.. https://doi.org/10.1207/s15327752jpa4803_13',
+      doi: '10.1207/s15327752jpa4803_13'
+    },
   },
   {
     id: 86,
@@ -3789,6 +4159,10 @@ const SCALE_LIBRARY = [
       { num:8, text:'Advertising is generally truthful.', reversed:true },
       { num:9, text:'Most advertising claims are honest.', reversed:true },
     ],
+    citation: {
+      apa: 'Obermiller, C., & Spangenberg, E. R. (1998). Development of a scale to measure consumer skepticism toward advertising. Journal of Consumer Psychology, 7(2), 159–186.. https://doi.org/10.1207/s15327663jcp0702_03',
+      doi: '10.1207/s15327663jcp0702_03'
+    },
   },
   {
     id: 87,
@@ -3817,6 +4191,10 @@ const SCALE_LIBRARY = [
       { num:14, text:'I recommend [brand] social media to friends or relatives.', dim:'Word of Mouth' },
       { num:15, text:'I intend to spread the word about [brand] social media.', dim:'Word of Mouth' },
     ],
+    citation: {
+      apa: 'Kim, A. J., & Ko, E. (2012). Do social media marketing activities enhance customer equity? An empirical study of luxury fashion brand. Journal of Business Research, 65(10), 1480–1486.. https://doi.org/10.1016/j.jbusres.2011.10.014',
+      doi: '10.1016/j.jbusres.2011.10.014'
+    },
   },
   {
     id: 88,
@@ -3848,6 +4226,10 @@ const SCALE_LIBRARY = [
       { num:17, text:'I am curious about why people act the way they do.', dim:'Specific Curiosity' },
       { num:18, text:'I like to figure out how complex things work.', dim:'Specific Curiosity' },
     ],
+    citation: {
+      apa: 'Litman, J. A., & Spielberger, C. D. (2003). Measuring epistemic curiosity and its diversive and specific components. Journal of Personality Assessment, 80(1), 75–86.. https://doi.org/10.1207/S15327752JPA8001_16',
+      doi: '10.1207/S15327752JPA8001_16'
+    },
   },
   {
     id: 90,
@@ -3876,6 +4258,10 @@ const SCALE_LIBRARY = [
       { num:14, text:'The job itself provides very few clues about whether or not I am performing well.', reversed:true, dim:'Feedback from Job' },
       { num:15, text:'After I finish a job, I know whether I performed well or poorly.', dim:'Feedback from Job' },
     ],
+    citation: {
+      apa: 'Hackman, J. R., & Oldham, G. R. (1975). Development of the job diagnostic survey. Journal of Applied Psychology, 60(2), 159–170.. https://doi.org/10.1037/h0076546',
+      doi: '10.1037/h0076546'
+    },
   },
   {
     id: 91,
@@ -3907,6 +4293,10 @@ const SCALE_LIBRARY = [
       { num:17, text:'I would not leave my organization right now because I have a sense of obligation to the people in it.', dim:'Normative Commitment' },
       { num:18, text:'I owe a great deal to my organization.', dim:'Normative Commitment' },
     ],
+    citation: {
+      apa: 'Meyer, J. P., Allen, N. J., & Smith, C. A. (1993). Commitment to organizations and occupations: Extension and test of a three-component conceptualization. Journal of Applied Psychology, 78(4), 538–551.. https://doi.org/10.1037/0021-9010.78.4.538',
+      doi: '10.1037/0021-9010.78.4.538'
+    },
   },
   {
     id: 92,
@@ -3939,6 +4329,10 @@ const SCALE_LIBRARY = [
       { num:18, text:'Said something nasty about your supervisor to others.', dim:'Interpersonal Deviance' },
       { num:19, text:'Played a mean prank on someone at work.', dim:'Interpersonal Deviance' },
     ],
+    citation: {
+      apa: 'Bennett, R. J., & Robinson, S. L. (2000). Development of a measure of workplace deviance. Journal of Applied Psychology, 85(3), 349–360.. https://doi.org/10.1037/0021-9010.85.3.349',
+      doi: '10.1037/0021-9010.85.3.349'
+    },
   },
   {
     id: 93,
@@ -3962,6 +4356,10 @@ const SCALE_LIBRARY = [
       { num:9,  text:'People at work acted as if you were not there.', dim:'Workplace Ostracism' },
       { num:10, text:'Others at work gave you the silent treatment.', dim:'Workplace Ostracism' },
     ],
+    citation: {
+      apa: 'Ferris, D. L., Brown, D. J., Berry, J. W., & Lian, H. (2008). The development and validation of the Workplace Ostracism Scale. Journal of Applied Psychology, 93(6), 1348–1366.. https://doi.org/10.1037/a0012743',
+      doi: '10.1037/a0012743'
+    },
   },
   {
     id: 94,
@@ -3981,6 +4379,10 @@ const SCALE_LIBRARY = [
       { num:5, text:'I get involved in issues that affect the quality of work life here in this group.', dim:'Voice Behavior' },
       { num:6, text:'I speak up in this group with ideas for new projects or changes in procedures.', dim:'Voice Behavior' },
     ],
+    citation: {
+      apa: 'LePine, J. A., & Van Dyne, L. (1998). Predicting voice behavior in work groups. Journal of Applied Psychology, 83(6), 853–868.. https://doi.org/10.1037/0021-9010.83.6.853',
+      doi: '10.1037/0021-9010.83.6.853'
+    },
   },
   {
     id: 95,
@@ -3997,6 +4399,10 @@ const SCALE_LIBRARY = [
       { num:2, text:'In general, I don\'t like my job.', reversed:true, dim:'Job Satisfaction' },
       { num:3, text:'In general, I like working here.', dim:'Job Satisfaction' },
     ],
+    citation: {
+      apa: 'Cammann, C., Fichman, M., Jenkins, G. D., & Klesh, J. R. (1983). Assessing the attitudes and perceptions of organizational members. In S. E. Seashore et al. (Eds.), Assessing Organizational Change: A Guide to Field Practice. Wiley-Interscience, 71–138.. Retrieved from https://scholar.google.com/scholar?q=Assessing+attitudes+perceptions+organizational+members+Cammann+Fichman+Jenkins+Klesh+1983',
+      url: 'https://scholar.google.com/scholar?q=Assessing+attitudes+perceptions+organizational+members+Cammann+Fichman+Jenkins+Klesh+1983'
+    },
   },
   {
     id: 96,
@@ -4029,6 +4435,10 @@ const SCALE_LIBRARY = [
       { num:18, text:'Because I find this work stimulating.', dim:'Intrinsic Motivation' },
       { num:19, text:'Because the work I do is fun.', dim:'Intrinsic Motivation' },
     ],
+    citation: {
+      apa: 'Gagné, M., Forest, J., Vansteenkiste, M., Crevier-Braud, L., van den Broeck, A., Aspeli, A. K., … Westbye, C. (2015). The Multidimensional Work Motivation Scale: Validation evidence in seven languages and nine countries. European Journal of Work and Organizational Psychology, 24(2), 238–262.. https://doi.org/10.1080/1359432X.2013.877892',
+      doi: '10.1080/1359432X.2013.877892'
+    },
   },
   {
     id: 97,
@@ -4053,6 +4463,10 @@ const SCALE_LIBRARY = [
       { num:10, text:'Unnecessary administrative requirements that slow my work.', dim:'Hindrance Stressors' },
       { num:11, text:'Concerns about my job security.', dim:'Hindrance Stressors' },
     ],
+    citation: {
+      apa: 'Cavanaugh, M. A., Boswell, W. R., Roehling, M. V., & Boudreau, J. W. (2000). An empirical examination of self-reported work stress among US managers. Journal of Applied Psychology, 85(1), 65–74.. https://doi.org/10.1037/0021-9010.85.1.65',
+      doi: '10.1037/0021-9010.85.1.65'
+    },
   },
   {
     id: 98,
@@ -4075,6 +4489,10 @@ const SCALE_LIBRARY = [
       { num:8, text:'My values match those of current employees in this organisation.', dim:'Person–Organization Fit' },
       { num:9, text:'The values and personality of this organisation reflect my own values and personality.', dim:'Person–Organization Fit' },
     ],
+    citation: {
+      apa: 'Cable, D. M., & DeRue, D. S. (2002). The convergent and discriminant validity of subjective fit perceptions. Journal of Applied Psychology, 87(5), 875–884.. https://doi.org/10.1037/0021-9010.87.5.875',
+      doi: '10.1037/0021-9010.87.5.875'
+    },
   },
   {
     id: 99,
@@ -4093,6 +4511,10 @@ const SCALE_LIBRARY = [
       { num:4, text:'My employer has fulfilled its promises to me.', reversed:true, dim:'Psychological Contract Breach' },
       { num:5, text:'My employer has not kept many of the promises it made to me.', dim:'Psychological Contract Breach' },
     ],
+    citation: {
+      apa: 'Robinson, S. L., & Morrison, E. W. (2000). The development of psychological contract breach and violation: A longitudinal study. Journal of Organizational Behavior, 21(5), 525–546.. https://doi.org/10.1002/1099-1379(200008)21:5<525::AID-JOB40>3.0.CO;2-T',
+      doi: '10.1002/1099-1379(200008)21:5<525::AID-JOB40>3.0.CO;2-T'
+    },
   },
   {
     id: 100,
@@ -4116,6 +4538,10 @@ const SCALE_LIBRARY = [
       { num:9,  text:'I see myself as someone who gets nervous easily.', dim:'Neuroticism' },
       { num:10, text:'I see myself as someone who has an active imagination.', dim:'Openness to Experience' },
     ],
+    citation: {
+      apa: 'Rammstedt, B., & John, O. P. (2007). Measuring personality in one minute or less: A 10-item short version of the Big Five Inventory in English and German. Journal of Research in Personality, 41(1), 203–212.. https://doi.org/10.1016/j.jrp.2006.02.001',
+      doi: '10.1016/j.jrp.2006.02.001'
+    },
   },
   {
     id: 101,
@@ -4137,6 +4563,10 @@ const SCALE_LIBRARY = [
       { num:6, text:'Becoming easily annoyed or irritable.', dim:'Generalized Anxiety' },
       { num:7, text:'Feeling afraid as if something awful might happen.', dim:'Generalized Anxiety' },
     ],
+    citation: {
+      apa: 'Spitzer, R. L., Kroenke, K., Williams, J. B. W., & Löwe, B. (2006). A brief measure for assessing generalized anxiety disorder. Archives of Internal Medicine, 166(10), 1092–1097.. https://doi.org/10.1001/archinte.166.10.1092',
+      doi: '10.1001/archinte.166.10.1092'
+    },
   },
   {
     id: 102,
@@ -4160,6 +4590,10 @@ const SCALE_LIBRARY = [
       { num:8, text:'Moving or speaking so slowly that other people could have noticed, or the opposite — being so fidgety or restless that you have been moving around a lot more than usual.', dim:'Depression' },
       { num:9, text:'Thoughts that you would be better off dead, or of hurting yourself in some way.', dim:'Depression' },
     ],
+    citation: {
+      apa: 'Kroenke, K., Spitzer, R. L., & Williams, J. B. W. (2001). The PHQ-9: Validity of a brief depression severity measure. Journal of General Internal Medicine, 16(9), 606–613.. https://doi.org/10.1046/j.1525-1497.2001.016009606.x',
+      doi: '10.1046/j.1525-1497.2001.016009606.x'
+    },
   },
   {
     id: 103,
@@ -4201,6 +4635,10 @@ const SCALE_LIBRARY = [
       { num:27, text:'I\'ve been criticising myself.', dim:'Self-Blame' },
       { num:28, text:'I\'ve been blaming myself for things that happened.', dim:'Self-Blame' },
     ],
+    citation: {
+      apa: 'Carver, C. S. (1997). You want to measure coping but your protocol\. International Journal of Behavioral Medicine, 4(1), 92–100.. https://doi.org/10.1207/s15327558ijbm0401_6',
+      doi: '10.1207/s15327558ijbm0401_6'
+    },
   },
   {
     id: 104,
@@ -4221,6 +4659,10 @@ const SCALE_LIBRARY = [
       { num:6, text:'It seems like most people are handling their lives better than I am.', dim:'Psychological Inflexibility' },
       { num:7, text:'Worries get in the way of my success.', dim:'Psychological Inflexibility' },
     ],
+    citation: {
+      apa: 'Bond, F. W., Hayes, S. C., Baer, R. A., Carpenter, K. M., Guenole, N., Orcutt, H. K., … Zettle, R. D. (2011). Preliminary psychometric properties of the Acceptance and Action Questionnaire — II: A revised measure of psychological inflexibility and experiential avoidance. Behavior Therapy, 42(4), 676–688.. https://doi.org/10.1016/j.beth.2011.03.007',
+      doi: '10.1016/j.beth.2011.03.007'
+    },
   },
   {
     id: 105,
@@ -4258,6 +4700,10 @@ const SCALE_LIBRARY = [
       { num:23, text:'Overcoming obstacles.', dim:'Confidence' },
       { num:24, text:'Solving problems.', dim:'Confidence' },
     ],
+    citation: {
+      apa: 'Savickas, M. L., & Porfeli, E. J. (2012). Career Adapt-Abilities Scale: Construction, reliability, and measurement equivalence across 13 countries. Journal of Vocational Behavior, 80(3), 661–673.. https://doi.org/10.1016/j.jvb.2012.01.011',
+      doi: '10.1016/j.jvb.2012.01.011'
+    },
   },
   {
     id: 106,
@@ -4274,6 +4720,10 @@ const SCALE_LIBRARY = [
       { num:2, text:'How often do you feel left out?', dim:'Loneliness' },
       { num:3, text:'How often do you feel isolated from others?', dim:'Loneliness' },
     ],
+    citation: {
+      apa: 'Hughes, M. E., Waite, L. J., Hawkley, L. C., & Cacioppo, J. T. (2004). A short scale for measuring loneliness in large surveys: Results from two population-based studies. Research on Aging, 26(6), 655–672.. https://doi.org/10.1177/0164027504268574',
+      doi: '10.1177/0164027504268574'
+    },
   },
   {
     id: 107,
@@ -4298,6 +4748,10 @@ const SCALE_LIBRARY = [
       { num:10, text:'I never consider my situation in life relative to that of other people.', reversed:true, dim:'Social Comparison Orientation' },
       { num:11, text:'I often compare myself with others with respect to what I have accomplished in life.', dim:'Social Comparison Orientation' },
     ],
+    citation: {
+      apa: 'Gibbons, F. X., & Buunk, B. P. (1999). Individual differences in social comparison: Development of a scale of social comparison orientation. Journal of Personality and Social Psychology, 76(1), 129–142.. https://doi.org/10.1037/0022-3514.76.1.129',
+      doi: '10.1037/0022-3514.76.1.129'
+    },
   },
   {
     id: 108,
@@ -4324,6 +4778,10 @@ const SCALE_LIBRARY = [
       { num:12, text:'I prefer to avoid situations at work where I might perform poorly.', dim:'Performance-Avoid Orientation' },
       { num:13, text:'I would avoid seeking feedback from my supervisor about my performance on a task if there was a chance that the feedback was negative.', dim:'Performance-Avoid Orientation' },
     ],
+    citation: {
+      apa: 'VandeWalle, D. (1997). Development and validation of a work domain goal orientation instrument. Educational and Psychological Measurement, 57(6), 995–1015.. https://doi.org/10.1177/0013164497057006009',
+      doi: '10.1177/0013164497057006009'
+    },
   },
   {
     id: 109,
@@ -4346,6 +4804,10 @@ const SCALE_LIBRARY = [
       { num:8, text:'I\'d be happier if I could afford to buy more things.', dim:'Happiness' },
       { num:9, text:'It sometimes bothers me quite a bit that I can\'t afford to buy all the things I\'d like.', dim:'Happiness' },
     ],
+    citation: {
+      apa: 'Richins, M. L. (2004). The Material Values Scale: Measurement properties and development of a short form. Journal of Consumer Research, 31(1), 209–219.. https://doi.org/10.1086/383436',
+      doi: '10.1086/383436'
+    },
   },
   {
     id: 110,
@@ -4365,6 +4827,10 @@ const SCALE_LIBRARY = [
       { num:5, text:'I know the names of new [products] before other people do.', dim:'Consumer Innovativeness' },
       { num:6, text:'I will buy a new [product] even if I haven\'t heard it talked about.', dim:'Consumer Innovativeness' },
     ],
+    citation: {
+      apa: 'Goldsmith, R. E., & Hofacker, C. F. (1991). Measuring consumer innovativeness. Journal of the Academy of Marketing Science, 19(3), 209–221.. https://doi.org/10.1007/BF02726497',
+      doi: '10.1007/BF02726497'
+    },
   },
   {
     id: 111,
@@ -4394,6 +4860,10 @@ const SCALE_LIBRARY = [
       { num:15, text:'This company encourages its employees to participate in voluntary activities.', dim:'Philanthropic Responsibility' },
       { num:16, text:'This company plays a role in society beyond the generation of profits.', dim:'Philanthropic Responsibility' },
     ],
+    citation: {
+      apa: 'Maignan, I., & Ferrell, O. C. (2004). Corporate social responsibility and marketing: An integrative framework. Journal of the Academy of Marketing Science, 32(1), 3–19.. https://doi.org/10.1177/0092070303258971',
+      doi: '10.1177/0092070303258971'
+    },
   },
   {
     id: 112,
@@ -4415,6 +4885,10 @@ const SCALE_LIBRARY = [
       { num:7, text:'This website keeps its promises and commitments.', dim:'Integrity-Based Trust' },
       { num:8, text:'This website is truthful in its dealings with customers.', dim:'Integrity-Based Trust' },
     ],
+    citation: {
+      apa: 'McKnight, D. H., Choudhury, V., & Kacmar, C. (2002). Developing and validating trust measures for e-commerce: An integrative typology. Information Systems Research, 13(3), 334–359.. https://doi.org/10.1287/isre.13.3.334.81',
+      doi: '10.1287/isre.13.3.334.81'
+    },
   },
   {
     id: 113,
@@ -4437,6 +4911,10 @@ const SCALE_LIBRARY = [
       { num:8, text:'Starting a new chapter in a math book.', dim:'Math Evaluation Anxiety' },
       { num:9, text:'Picking up a math textbook to begin working on a homework assignment.', dim:'Math Evaluation Anxiety' },
     ],
+    citation: {
+      apa: 'Hopko, D. R., Mahadevan, R., Bare, R. L., & Hunt, M. K. (2003). The Abbreviated Math Anxiety Scale (AMAS): Construction, validity, and reliability. Assessment, 10(2), 178–182.. https://doi.org/10.1177/1073191103010002008',
+      doi: '10.1177/1073191103010002008'
+    },
   },
   {
     id: 114,
@@ -4462,6 +4940,10 @@ const SCALE_LIBRARY = [
       { num:11, text:'I just want to avoid doing poorly in this class.', dim:'Performance-Avoidance' },
       { num:12, text:'My fear of performing poorly in this class is often what motivates me.', dim:'Performance-Avoidance' },
     ],
+    citation: {
+      apa: 'Elliot, A. J., & Murayama, K. (2008). On the measurement of achievement goals: Critique, illustration, and application. Journal of Educational Psychology, 100(3), 613–628.. https://doi.org/10.1037/0022-0663.100.3.613',
+      doi: '10.1037/0022-0663.100.3.613'
+    },
   },
   {
     id: 115,
@@ -4484,6 +4966,10 @@ const SCALE_LIBRARY = [
       { num:8, text:'I should get a grade based on my best test or assignment, not a combination of all work completed.', dim:'Entitled Expectations' },
       { num:9, text:'I feel I deserve good grades simply for attending class regularly.', dim:'Entitled Expectations' },
     ],
+    citation: {
+      apa: 'Chowning, K., & Campbell, N. J. (2009). Development and validation of a measure of academic entitlement: Individual differences in students\. Journal of Educational Psychology, 101(4), 982–997.. https://doi.org/10.1037/a0016351',
+      doi: '10.1037/a0016351'
+    },
   },
 {
     id: 89, abbr: 'SDQ', name: 'Sociodemographic Survey', domain: 'Demographics',
@@ -4554,6 +5040,10 @@ const SCALE_LIBRARY = [
       { num:55, text:'Which social media platforms do you actively use at least once per week?', dim:'Technology', dtype:'multicheck', optional:true, options:['Facebook','Instagram','X / Twitter','TikTok','LinkedIn','YouTube','WhatsApp','Snapchat','Pinterest','Reddit','Threads','Other'] },
       { num:56, text:'What device do you most frequently use to access the internet?', dim:'Technology', dtype:'choice', options:['Smartphone','Tablet','Laptop computer','Desktop computer','Smart TV','Wearable device','Other'] },
     ],
+    citation: {
+      apa: 'Galobardes, B., Shaw, M., Lawlor, D. A., Lynch, J. W., & Davey Smith, G. (2006). Indicators of socioeconomic position (part 1). Journal of Epidemiology and Community Health, 60(1), 7–12.. https://doi.org/10.1136/jech.2004.023531',
+      doi: '10.1136/jech.2004.023531'
+    },
   },
 ]
 
@@ -4698,12 +5188,23 @@ function renderScaleGrid() {
       dimsBadge = `<div class="scale-card-dims" style="color:var(--text-tertiary)">Tap to choose dimensions</div>`
     }
     const indicator = s.demographic ? '≡' : (sel ? '✓' : '')
+    // Build citation block
+    let citationHtml = ''
+    if (s.citation) {
+      const linkHtml = s.citation.doi
+        ? `<a href="https://doi.org/${s.citation.doi}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 DOI: ${s.citation.doi}</a>`
+        : s.citation.url
+          ? `<a href="${s.citation.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔍 View paper (no DOI)</a>`
+          : `<span class="no-doi">⚠️ No DOI available</span>`
+      citationHtml = `<div class="scale-card-citation">${linkHtml}</div>`
+    }
     return `<div class="scale-card ${sel ? 'selected' : ''}" onclick="toggleScale(${s.id})">
       <div class="scale-card-check" style="${s.demographic && sel ? 'background:var(--accent);color:#fff;font-size:13px;' : ''}">${indicator}</div>
       <div class="scale-card-abbr">${s.abbr}</div>
       <div class="scale-card-name">${s.name}</div>
       <div class="scale-card-meta">${s.items_count} items · ${s.domain}</div>
       ${dimsBadge}
+      ${citationHtml}
     </div>`
   }).join('')
 }
