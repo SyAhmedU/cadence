@@ -130,6 +130,14 @@
   }
   .btn-ghost:hover { background: var(--accent-light); }
 
+  .btn-danger {
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid #fca5a5;
+    padding: 14px 18px;
+  }
+  .btn-danger:hover { background: #fef2f2; }
+
   .btn-sm {
     padding: 9px 18px;
     font-size: 13px;
@@ -1627,6 +1635,7 @@
     </div>
     <div class="dim-sheet-body" id="dim-picker-list"></div>
     <div class="dim-sheet-footer">
+      <button class="btn btn-danger" id="dim-remove-btn" onclick="removeDimScale()" style="display:none;">Remove</button>
       <button class="btn btn-secondary" onclick="closeDimPicker()" style="flex:1;">Cancel</button>
       <button class="btn btn-primary" id="dim-confirm-btn" onclick="confirmDimPicker()" style="flex:2;">Done</button>
     </div>
@@ -5059,7 +5068,7 @@ let state = {
     researcher: '',
     maxWaves: 3,
     selectedScales: [],     // array of scale ids from library
-    scaleDimensions: {},    // { [scaleId]: ['dim1', 'dim2', ...] } — only for demographic scales
+    scaleDimensions: {},    // { [scaleId]: ['dim1', 'dim2', ...] } — for any scale with 2+ dimensions
     customQuestions: [],    // array of { text, type, options?, label }
     createdAt: null,
   },
@@ -5178,16 +5187,18 @@ function renderScaleGrid() {
 
   grid.innerHTML = scales.map(s => {
     const sel = state.study.selectedScales.includes(s.id)
+    const allDimsArr = [...new Set(s.items.map(i => i.dim).filter(Boolean))]
+    const isMultiDim = allDimsArr.length >= 2
     let dimsBadge = ''
-    if (s.demographic && sel) {
+    if (sel && state.study.scaleDimensions[s.id]) {
       const chosen = state.study.scaleDimensions[s.id] || []
-      const allDims = [...new Set(s.items.map(i => i.dim).filter(Boolean))]
       const itemCount = s.items.filter(i => chosen.includes(i.dim)).length
-      dimsBadge = `<div class="scale-card-dims">${chosen.length} of ${allDims.length} dimensions · ${itemCount} items</div>`
-    } else if (s.demographic) {
-      dimsBadge = `<div class="scale-card-dims" style="color:var(--text-tertiary)">Tap to choose dimensions</div>`
+      const allCount = isMultiDim ? allDimsArr.length : 0
+      dimsBadge = `<div class="scale-card-dims">${chosen.length} of ${allCount} dimension${allCount !== 1 ? 's' : ''} · ${itemCount} items</div>`
+    } else if (isMultiDim) {
+      dimsBadge = `<div class="scale-card-dims" style="color:var(--text-tertiary)">Tap to pick dimensions</div>`
     }
-    const indicator = s.demographic ? '≡' : (sel ? '✓' : '')
+    const indicator = (s.demographic || isMultiDim) ? (sel ? '✓' : '≡') : (sel ? '✓' : '')
     // Build citation block
     let citationHtml = ''
     if (s.citation) {
@@ -5215,10 +5226,14 @@ function onScaleSearch() {
 
 function toggleScale(id) {
   const scale = SCALE_LIBRARY.find(s => s.id === id)
-  if (scale && scale.demographic) {
+  if (!scale) return
+  const allDims = [...new Set(scale.items.map(i => i.dim).filter(Boolean))]
+  // Open dim picker for any scale with 2+ dimensions (including demographics)
+  if (allDims.length >= 2) {
     openDimPicker(id)
     return
   }
+  // Single-dim or no-dim scale: simple toggle
   const idx = state.study.selectedScales.indexOf(id)
   if (idx === -1) state.study.selectedScales.push(id)
   else state.study.selectedScales.splice(idx, 1)
@@ -5313,7 +5328,8 @@ function getEffectiveItemCount(id) {
   const scale = SCALE_LIBRARY.find(s => s.id === id)
   if (!scale) return 0
   const dims = state.study.scaleDimensions[id]
-  if (!dims || !scale.demographic) return scale.items_count
+  if (!dims) return scale.items_count
+  // Filter items by selected dimensions (works for all scale types)
   return scale.items.filter(i => !i.dim || dims.includes(i.dim)).length
 }
 
@@ -5336,7 +5352,8 @@ function renderReview() {
       ${sel.length > 0 ? `<div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Scales Included</div>
       <div style="display:flex; gap:6px; flex-wrap:wrap;">${sel.map(s => {
         const dims = state.study.scaleDimensions[s.id]
-        const suffix = (s.demographic && dims) ? ` (${dims.length} dim${dims.length !== 1 ? 's' : ''})` : ''
+        const allDimsArr = [...new Set(s.items.map(i => i.dim).filter(Boolean))]
+        const suffix = dims && allDimsArr.length >= 2 ? ` (${dims.length}/${allDimsArr.length} dims)` : ''
         return `<span class="tag">${s.abbr}${suffix}</span>`
       }).join('')}</div>` : ''}
     </div>
@@ -5471,9 +5488,14 @@ function openDimPicker(id) {
   dimPickerState.scaleId = id
   const allDims = [...new Set(scale.items.map(i => i.dim).filter(Boolean))]
   const existing = state.study.scaleDimensions[id]
+  const isSelected = state.study.selectedScales.includes(id)
+  // Default to all dims selected if opening fresh
   dimPickerState.dims = existing ? new Set(existing) : new Set(allDims)
   document.getElementById('dim-picker-title').textContent = scale.abbr
   document.getElementById('dim-picker-sub').textContent = scale.name
+  // Show Remove button only when scale is already in study
+  const removeBtn = document.getElementById('dim-remove-btn')
+  if (removeBtn) removeBtn.style.display = isSelected ? 'inline-flex' : 'none'
   renderDimList(scale, allDims)
   document.getElementById('dim-picker-modal').classList.add('open')
 }
@@ -5495,8 +5517,10 @@ function renderDimList(scale, allDims) {
 function updateDimConfirmBtn(scale) {
   const s = scale || SCALE_LIBRARY.find(s => s.id === dimPickerState.scaleId)
   const count = s.items.filter(i => dimPickerState.dims.has(i.dim)).length
+  const isSelected = state.study.selectedScales.includes(dimPickerState.scaleId)
+  const action = isSelected ? 'Update' : 'Add'
   const btn = document.getElementById('dim-confirm-btn')
-  btn.textContent = count > 0 ? `Add ${count} item${count !== 1 ? 's' : ''} to study` : 'Select at least one dimension'
+  btn.textContent = count > 0 ? `${action} ${count} item${count !== 1 ? 's' : ''}` : 'Select at least one dimension'
   btn.disabled = count === 0
 }
 
@@ -5528,6 +5552,14 @@ function confirmDimPicker() {
   if (dims.length === 0) return
   if (!state.study.selectedScales.includes(id)) state.study.selectedScales.push(id)
   state.study.scaleDimensions[id] = dims
+  closeDimPicker()
+  renderScaleGrid()
+}
+
+function removeDimScale() {
+  const id = dimPickerState.scaleId
+  state.study.selectedScales = state.study.selectedScales.filter(x => x !== id)
+  delete state.study.scaleDimensions[id]
   closeDimPicker()
   renderScaleGrid()
 }
