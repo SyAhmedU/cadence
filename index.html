@@ -972,6 +972,168 @@
     margin-bottom: 32px;
   }
 
+  /* ---- ANALYTICS ---- */
+  #screen-analytics {
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+    overflow-y: auto;
+  }
+  .analytics-wrap {
+    width: 100%;
+    max-width: 680px;
+  }
+  .analytics-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .analytics-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    flex: 1;
+  }
+  .analytics-stat-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .analytics-stat {
+    flex: 1;
+    min-width: 120px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .analytics-stat-n {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .analytics-stat-l {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .analytics-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+  .analytics-wave-bars {
+    margin-bottom: 28px;
+  }
+  .analytics-wave-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .analytics-wave-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 60px;
+  }
+  .analytics-wave-bar-wrap {
+    flex: 1;
+    background: var(--border);
+    border-radius: 99px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .analytics-wave-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+  .analytics-wave-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    min-width: 28px;
+    text-align: right;
+  }
+  .analytics-scale-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 28px;
+    font-size: 13px;
+  }
+  .analytics-scale-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 6px 10px;
+    border-bottom: 2px solid var(--border);
+  }
+  .analytics-scale-table th:last-child { text-align: right; }
+  .analytics-scale-table td {
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .analytics-scale-table td:last-child { text-align: right; }
+  .analytics-scale-abbr {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 99px;
+    letter-spacing: 0.04em;
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+  .analytics-mean-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .analytics-mean-track {
+    flex: 1;
+    max-width: 140px;
+    background: var(--border);
+    border-radius: 99px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .analytics-mean-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  }
+  .analytics-mean-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    min-width: 32px;
+    text-align: right;
+  }
+  .analytics-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
   /* ---- COMPLETE ---- */
   #screen-complete {
     flex-direction: column;
@@ -1598,7 +1760,24 @@
 
     <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
       <button class="btn btn-secondary" onclick="openExportModal()">Export Data</button>
+      <button class="btn btn-secondary" onclick="openAnalytics()">📊 Analytics</button>
       <button class="btn btn-primary" onclick="goTo('landing')">Create Another Study</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ANALYTICS ==================== -->
+<div class="screen" id="screen-analytics">
+  <div class="analytics-wrap">
+    <div class="analytics-header">
+      <div class="analytics-title" id="analytics-study-name">Analytics</div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('study-done')">← Back</button>
+    </div>
+    <div class="analytics-stat-row" id="analytics-stats"></div>
+    <div id="analytics-wave-section"></div>
+    <div id="analytics-scale-section"></div>
+    <div id="analytics-empty" class="analytics-empty" style="display:none;">
+      No responses yet. Share your study link and check back after participants complete the survey.
     </div>
   </div>
 </div>
@@ -7959,6 +8138,134 @@ function downloadMyData() {
   a.href = URL.createObjectURL(blob)
   a.download = `cadence_${cfg.id}_${pc}.json`
   a.click()
+}
+
+// =====================================================================
+//  ANALYTICS
+// =====================================================================
+function openAnalytics() {
+  const studyId = state.study.id || document.getElementById('study-code-display').textContent
+  const cfg = state.study
+  const studyResponseKey = `cadence_responses_${studyId}`
+  const responses = JSON.parse(localStorage.getItem(studyResponseKey) || '[]')
+
+  document.getElementById('analytics-study-name').textContent = cfg.name || 'Analytics'
+
+  const statsEl = document.getElementById('analytics-stats')
+  const waveEl  = document.getElementById('analytics-wave-section')
+  const scaleEl = document.getElementById('analytics-scale-section')
+  const emptyEl = document.getElementById('analytics-empty')
+
+  if (responses.length === 0) {
+    statsEl.innerHTML = ''
+    waveEl.innerHTML  = ''
+    scaleEl.innerHTML = ''
+    emptyEl.style.display = 'block'
+    goTo('analytics')
+    return
+  }
+  emptyEl.style.display = 'none'
+
+  // — Stats bar ————————————————————————————
+  const uniqueParticipants = new Set(responses.map(r => r.participantCode)).size
+  const maxWave = Math.max(...responses.map(r => r.waveNum), 1)
+  const avgMs = responses.reduce((sum, r) => {
+    const ms = r.completedAt && r.startedAt ? new Date(r.completedAt) - new Date(r.startedAt) : 0
+    return sum + ms
+  }, 0) / responses.length
+  const avgMin = Math.round(avgMs / 60000)
+  statsEl.innerHTML = `
+    <div class="analytics-stat">
+      <div class="analytics-stat-n">${responses.length}</div>
+      <div class="analytics-stat-l">Responses</div>
+    </div>
+    <div class="analytics-stat">
+      <div class="analytics-stat-n">${uniqueParticipants}</div>
+      <div class="analytics-stat-l">Participants</div>
+    </div>
+    <div class="analytics-stat">
+      <div class="analytics-stat-n">${maxWave}</div>
+      <div class="analytics-stat-l">Waves collected</div>
+    </div>
+    ${avgMs > 0 ? `<div class="analytics-stat">
+      <div class="analytics-stat-n">${avgMin || '<1'}</div>
+      <div class="analytics-stat-l">Avg. min</div>
+    </div>` : ''}
+  `
+
+  // — Wave breakdown ————————————————————————
+  const waveCounts = {}
+  for (const r of responses) waveCounts[r.waveNum] = (waveCounts[r.waveNum] || 0) + 1
+  const maxCount = Math.max(...Object.values(waveCounts), 1)
+  const wavesHtml = Object.keys(waveCounts).sort((a,b)=>+a-+b).map(w => `
+    <div class="analytics-wave-row">
+      <div class="analytics-wave-label">Wave ${w}</div>
+      <div class="analytics-wave-bar-wrap">
+        <div class="analytics-wave-bar-fill" style="width:${Math.round(waveCounts[w]/maxCount*100)}%"></div>
+      </div>
+      <div class="analytics-wave-count">${waveCounts[w]}</div>
+    </div>
+  `).join('')
+  waveEl.innerHTML = `
+    <div class="analytics-section-title">Responses by Wave</div>
+    <div class="analytics-wave-bars">${wavesHtml}</div>
+  `
+
+  // — Scale means ———————————————————————————
+  const scaleBuckets = {}
+  for (const r of responses) {
+    for (const q of r.questions) {
+      if (!q.answer || q.answer < 1) continue
+      const abbr = q.scaleAbbr || 'Custom'
+      if (!scaleBuckets[abbr]) scaleBuckets[abbr] = []
+      const val = q.reversed ? (8 - q.answer) : q.answer
+      scaleBuckets[abbr].push(val)
+    }
+  }
+  const scaleKeys = Object.keys(scaleBuckets).sort()
+  if (scaleKeys.length === 0) {
+    scaleEl.innerHTML = ''
+  } else {
+    const rows = scaleKeys.map(abbr => {
+      const vals = scaleBuckets[abbr]
+      const mean = vals.reduce((s,v) => s+v, 0) / vals.length
+      const sd = Math.sqrt(vals.reduce((s,v) => s + (v-mean)**2, 0) / vals.length)
+      const pct = Math.round((mean - 1) / 6 * 100)
+      return `
+        <tr>
+          <td>
+            <span class="analytics-scale-abbr">${abbr}</span>
+          </td>
+          <td>
+            <div class="analytics-mean-bar-wrap">
+              <div class="analytics-mean-track">
+                <div class="analytics-mean-fill" style="width:${pct}%"></div>
+              </div>
+              <div class="analytics-mean-val">${mean.toFixed(2)}</div>
+            </div>
+          </td>
+          <td style="color:var(--text-secondary)">±${sd.toFixed(2)}</td>
+          <td style="color:var(--text-secondary)">${vals.length}</td>
+        </tr>
+      `
+    }).join('')
+    scaleEl.innerHTML = `
+      <div class="analytics-section-title">Scale Means (1–7)</div>
+      <table class="analytics-scale-table">
+        <thead>
+          <tr>
+            <th>Scale</th>
+            <th>Mean</th>
+            <th>SD</th>
+            <th>N items</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `
+  }
+
+  goTo('analytics')
 }
 
 // =====================================================================
