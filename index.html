@@ -6,6 +6,7 @@
 <title>Cadence — Syed</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563eb'/><text x='16' y='23' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='800' font-size='19' fill='white'>S</text></svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1580,6 +1581,12 @@
         <input type="text" id="study-link-display" readonly style="flex:1; padding:12px 14px; border-radius:10px; border:1.5px solid var(--border); background:var(--surface); font-size:13px; color:var(--text); font-family:var(--font); outline:none;">
         <button class="btn btn-primary btn-sm" onclick="copyStudyLink()">Copy</button>
       </div>
+    </div>
+
+    <div style="margin-bottom:20px; display:flex; flex-direction:column; align-items:center; gap:10px;">
+      <div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em; align-self:flex-start;">QR Code</div>
+      <div id="qr-container" style="padding:12px; background:#fff; border-radius:12px; display:inline-block; box-shadow:0 2px 12px rgba(0,0,0,0.12);"></div>
+      <button class="btn btn-secondary btn-sm" onclick="downloadQR()">⬇ Download QR</button>
     </div>
 
     <div style="margin-bottom:28px;">
@@ -7376,12 +7383,36 @@ function publishStudy() {
   document.getElementById('study-link-display').value = url
   document.getElementById('study-code-display').textContent = studyId
 
+  // Generate QR code
+  const qrContainer = document.getElementById('qr-container')
+  qrContainer.innerHTML = ''
+  if (typeof QRCode !== 'undefined') {
+    new QRCode(qrContainer, {
+      text: url,
+      width: 160,
+      height: 160,
+      colorDark: '#1a1a2e',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    })
+  }
+
   goTo('study-done')
 }
 
 function copyStudyLink() {
   const val = document.getElementById('study-link-display').value
   navigator.clipboard.writeText(val).then(() => toast('Link copied!'))
+}
+
+function downloadQR() {
+  const canvas = document.querySelector('#qr-container canvas')
+  if (!canvas) { toast('QR not ready yet'); return }
+  const studyId = document.getElementById('study-code-display').textContent || 'study'
+  const a = document.createElement('a')
+  a.href = canvas.toDataURL('image/png')
+  a.download = `cadence-qr-${studyId}.png`
+  a.click()
 }
 
 function copyStudyCode() {
