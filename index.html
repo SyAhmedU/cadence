@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cadence — Survey research, conducted beautifully.</title>
+<title>Cadence — Syed</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232563eb'/><text x='16' y='23' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='800' font-size='19' fill='white'>S</text></svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1418,8 +1419,33 @@
     .btn-next { padding: 14px 20px; font-size: 15px; }
   }
 </style>
+<style>
+.syed-bar{display:flex;align-items:center;gap:10px;padding:0 20px;height:38px;background:#0f172a;border-bottom:1px solid #1e293b;font-family:'Inter',system-ui,sans-serif;position:sticky;top:0;z-index:9999;flex-shrink:0}
+.syed-bar-logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0}
+.syed-mark{width:22px;height:22px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:.71rem;font-weight:800;color:#fff;flex-shrink:0}
+.syed-name{font-size:.82rem;font-weight:700;color:#f8fafc;letter-spacing:-.01em}
+.syed-divider{color:#1e293b;font-size:.9rem;margin:0 2px;user-select:none}
+.syed-project{font-size:.75rem;color:#475569;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.syed-links{display:flex;align-items:center;margin-left:auto;flex-shrink:0}
+.syed-link{font-size:.71rem;color:#334155;text-decoration:none;padding:4px 9px;border-radius:5px;transition:.12s;white-space:nowrap}
+.syed-link:hover{color:#93c5fd;background:#ffffff08}
+.syed-link-all{color:#60a5fa!important;font-weight:600}
+.syed-link-all:hover{color:#bfdbfe!important}
+@media(max-width:640px){.syed-links{display:none}}
+</style>
 </head>
 <body>
+<div class="syed-bar">
+  <a class="syed-bar-logo" href="https://syahmedu.github.io/nexus/" target="_blank" rel="noopener"><span class="syed-mark">S</span><span class="syed-name">Syed</span></a>
+  <span class="syed-divider">·</span>
+  <span class="syed-project">Cadence</span>
+  <nav class="syed-links">
+    <a class="syed-link" href="https://syahmedu.github.io/journaltime/" target="_blank" rel="noopener">JournalTime</a>
+    <a class="syed-link" href="https://scalescope.vercel.app" target="_blank" rel="noopener">ScaleScope</a>
+    <a class="syed-link" href="https://task-manager-production-5683.up.railway.app" target="_blank" rel="noopener">TaskFlow</a>
+    <a class="syed-link syed-link-all" href="https://syahmedu.github.io/nexus/" target="_blank" rel="noopener">All Projects →</a>
+  </nav>
+</div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
