@@ -7374,8 +7374,10 @@ function renderScaleGrid() {
   }).join('')
 }
 
+let _scaleSearchTimer = null
 function onScaleSearch() {
-  renderScaleGrid()
+  clearTimeout(_scaleSearchTimer)
+  _scaleSearchTimer = setTimeout(renderScaleGrid, 150)
 }
 
 function toggleScale(id) {
