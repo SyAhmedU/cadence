@@ -1093,6 +1093,18 @@
     min-width: 28px;
     text-align: right;
   }
+  .analytics-import-msg {
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    border-left: 3px solid;
+  }
+  .analytics-import-msg.ok   { background: #ecfdf5; color: #047857; border-color: #10b981; }
+  .analytics-import-msg.warn { background: #fffbeb; color: #92400e; border-color: #f59e0b; }
+  .analytics-import-msg.err  { background: #fef2f2; color: #991b1b; border-color: #ef4444; }
+
   .analytics-scale-table {
     width: 100%;
     border-collapse: collapse;
@@ -1854,8 +1866,13 @@
   <div class="analytics-wrap">
     <div class="analytics-header">
       <div class="analytics-title" id="analytics-study-name">Analytics</div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('study-done')">← Back</button>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="file" id="analytics-import-input" accept=".json" multiple style="display:none" onchange="importParticipantResponses(event)">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('analytics-import-input').click()" title="Merge participant-exported JSON files">📥 Import</button>
+        <button class="btn btn-ghost btn-sm" onclick="goTo('study-done')">← Back</button>
+      </div>
     </div>
+    <div id="analytics-import-msg" class="analytics-import-msg" style="display:none;"></div>
     <div class="analytics-stat-row" id="analytics-stats"></div>
     <div id="analytics-wave-section"></div>
     <div id="analytics-scale-section"></div>
@@ -8429,6 +8446,78 @@ function openAnalytics() {
   }
 
   goTo('analytics')
+}
+
+// =====================================================================
+//  IMPORT participant-exported response files
+// =====================================================================
+async function importParticipantResponses(event) {
+  const files = Array.from(event.target.files || [])
+  event.target.value = '' // reset so re-importing the same file fires change
+  if (!files.length) return
+
+  const studyId = state.study?.id || document.getElementById('study-code-display')?.textContent
+  if (!studyId) { _setImportMsg('No active study selected.', 'err'); return }
+
+  const studyResponseKey = `cadence_responses_${studyId}`
+  const existing = JSON.parse(localStorage.getItem(studyResponseKey) || '[]')
+
+  // Dedup key: participantCode + waveNum + completedAt
+  const seen = new Set(existing.map(r => `${r.participantCode}|${r.waveNum}|${r.completedAt}`))
+
+  let added = 0, skipped = 0, badFiles = 0, wrongStudy = 0
+  for (const file of files) {
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+      // Participant export shape: { completedWaves, responses: [...] }
+      const list = Array.isArray(data) ? data
+                 : Array.isArray(data.responses) ? data.responses
+                 : null
+      if (!list) { badFiles++; continue }
+      for (const r of list) {
+        if (!r?.participantCode || !r?.questions) { badFiles++; continue }
+        if (r.studyId && r.studyId !== studyId) { wrongStudy++; continue }
+        const key = `${r.participantCode}|${r.waveNum}|${r.completedAt}`
+        if (seen.has(key)) { skipped++; continue }
+        seen.add(key)
+        existing.push(r)
+        added++
+
+        // Also update the per-participant wave key so re-imports stay consistent
+        const waveKey = `cadence_wave_${studyId}_${r.participantCode}`
+        const w = JSON.parse(localStorage.getItem(waveKey) || '{"completedWaves":0,"responses":[]}')
+        if (!w.responses.find(x => x.waveNum === r.waveNum && x.completedAt === r.completedAt)) {
+          w.responses.push(r)
+          w.completedWaves = Math.max(w.completedWaves || 0, r.waveNum || 0)
+          localStorage.setItem(waveKey, JSON.stringify(w))
+        }
+      }
+    } catch {
+      badFiles++
+    }
+  }
+
+  localStorage.setItem(studyResponseKey, JSON.stringify(existing))
+  const parts = []
+  parts.push(`${added} response${added === 1 ? '' : 's'} imported`)
+  if (skipped)     parts.push(`${skipped} duplicate skipped`)
+  if (wrongStudy)  parts.push(`${wrongStudy} from other study skipped`)
+  if (badFiles)    parts.push(`${badFiles} malformed`)
+  const cls = added > 0 ? 'ok' : (badFiles || wrongStudy ? 'warn' : 'warn')
+  _setImportMsg(parts.join(' · '), cls)
+  // Re-render
+  openAnalytics()
+}
+
+function _setImportMsg(text, cls) {
+  const el = document.getElementById('analytics-import-msg')
+  if (!el) return
+  el.className = `analytics-import-msg ${cls || 'ok'}`
+  el.textContent = text
+  el.style.display = 'block'
+  clearTimeout(_setImportMsg._t)
+  _setImportMsg._t = setTimeout(() => { el.style.display = 'none' }, 6000)
 }
 
 // =====================================================================
