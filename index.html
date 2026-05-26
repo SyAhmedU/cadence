@@ -1891,6 +1891,7 @@
       <div style="display:flex; gap:8px; align-items:center;">
         <input type="file" id="analytics-import-input" accept=".json" multiple style="display:none" onchange="importParticipantResponses(event)">
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('analytics-import-input').click()" title="Merge participant-exported JSON files">📥 Import</button>
+        <button class="btn btn-ghost btn-sm" onclick="openInToolsScope()" title="Open this study's responses in ToolsScope for analysis (composites, t-tests, ANOVA, etc.)">📈 Open in ToolsScope</button>
         <button class="btn btn-ghost btn-sm" onclick="goTo('study-done')">← Back</button>
       </div>
     </div>
@@ -8263,6 +8264,42 @@ function downloadMyData() {
   a.href = URL.createObjectURL(blob)
   a.download = `cadence_${cfg.id}_${pc}.json`
   a.click()
+}
+
+// Send the full study aggregate to ToolsScope for analysis. Small studies
+// (≤ ~50 kB JSON, fits comfortably in a URL hash on every modern browser) go
+// via `#cadence=<base64>` and ToolsScope ingests them on load. Larger studies
+// would blow the hash limit, so we fall back to downloading the aggregate
+// and opening ToolsScope blank — the user uploads the file in the Data tab.
+function openInToolsScope() {
+  const studyId = state.study.id || document.getElementById('study-code-display').textContent
+  const studyResponseKey = `cadence_responses_${studyId}`
+  const responses = JSON.parse(localStorage.getItem(studyResponseKey) || '[]')
+  if (!responses.length) {
+    alert('No responses to analyze yet. Share your study link and come back once participants have completed it.')
+    return
+  }
+  const base = 'https://toolsscope.vercel.app/'
+  const json = JSON.stringify(responses)
+  // Threshold below modern browsers' URL hash budget (Chrome/Edge ~80 kB, Firefox ~64 kB)
+  // — leave headroom for the rest of the URL + base64 inflation (~33%).
+  const HASH_LIMIT = 45000
+  if (json.length <= HASH_LIMIT) {
+    const bytes = new TextEncoder().encode(json)
+    let bin = ''
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i])
+    const b64 = btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    window.open(`${base}#cadence=${b64}`, '_blank', 'noopener,noreferrer')
+  } else {
+    // Auto-download then open ToolsScope so the user just drops the file in.
+    const blob = new Blob([json], { type: 'application/json' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `cadence_${studyId}_aggregate.json`
+    a.click()
+    setTimeout(() => window.open(base, '_blank', 'noopener,noreferrer'), 150)
+    alert(`Study has ${responses.length} responses — too large to send via URL. The aggregate JSON has been downloaded; upload it on the ToolsScope Data tab when it opens.`)
+  }
 }
 
 // =====================================================================
