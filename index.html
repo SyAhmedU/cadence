@@ -8725,11 +8725,30 @@ function toast(msg) {
 // =====================================================================
 //  INIT: Check URL hash on load
 // =====================================================================
+//
+// Hash formats Cadence honours, in priority order:
+//   #pack=<b64>             — ResearchPack from ResearchFlow → open builder, prefill
+//   #<base64-study-json>    — Study link from a published study → open Join screen
+//
+// The ResearchPack prefix is unambiguous, so we check it first and only fall
+// through to the legacy unprefixed study-link parser when it doesn't match.
 window.addEventListener('load', () => {
-  const hash = location.hash.slice(1)
-  if (hash) {
+  const rawHash = location.hash.slice(1)
+
+  // ResearchFlow handoff: prefill the builder with the planned study.
+  const packMatch = rawHash.match(/^pack=([^&]+)/)
+  if (packMatch) {
+    const pack = _decodeResearchPack(packMatch[1])
+    if (pack) {
+      applyResearchPack(pack)
+      history.replaceState(null, '', location.pathname + location.search)
+      return
+    }
+  }
+
+  if (rawHash) {
     try {
-      const cfg = JSON.parse(atob(hash))
+      const cfg = JSON.parse(atob(rawHash))
       if (cfg.id && cfg.name) {
         // This is a study link — go straight to join
         state.session.studyConfig = cfg
@@ -8743,6 +8762,113 @@ window.addEventListener('load', () => {
   // Default: show landing
   goTo('landing')
 })
+
+// ── ResearchPack receiver ────────────────────────────────────────────
+// ResearchFlow exports a versioned snapshot of the planned study so Cadence
+// can pre-build the matching study without re-typing. We accept v1 only and
+// silently ignore anything else (forward-compat: future apps will know to
+// ship pack types Cadence doesn't yet understand).
+function _decodeResearchPack(b64) {
+  try {
+    const pad = '='.repeat((4 - (b64.length % 4)) % 4)
+    const norm = b64.replace(/-/g, '+').replace(/_/g, '/') + pad
+    const bin = atob(norm)
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    const json = new TextDecoder().decode(bytes)
+    const parsed = JSON.parse(json)
+    if (parsed?.source !== 'researchflow' || parsed?.v !== 1) return null
+    return parsed
+  } catch (_) { return null }
+}
+
+function applyResearchPack(pack) {
+  // Step 1: open the builder and prefill the form.
+  goTo('builder')
+  setStep(1)
+  const nameField = document.getElementById('study-name')
+  const descField = document.getElementById('study-desc')
+  const wavesField = document.getElementById('study-waves')
+  // Title heuristic — prefer the synthesised title from researchflow, fall
+  // back to the research question.
+  if (nameField) nameField.value = (pack.title || pack.question || '').slice(0, 80)
+  if (descField) {
+    const descParts = []
+    if (pack.idea) descParts.push(pack.idea)
+    if (pack.theory?.name) descParts.push(`Framework: ${pack.theory.name}.`)
+    if (pack.sampling?.targetPopulation) descParts.push(`Target population: ${pack.sampling.targetPopulation}.`)
+    descField.value = descParts.join(' ').slice(0, 500)
+  }
+  if (wavesField && pack.design?.waves) {
+    // Snap to the nearest allowed value.
+    const allowed = [1, 2, 3, 4, 6]
+    const w = pack.design.waves
+    const closest = allowed.reduce((best, n) => Math.abs(n - w) < Math.abs(best - w) ? n : best, allowed[0])
+    wavesField.value = String(closest)
+  }
+  state.study.name = nameField?.value || ''
+  state.study.desc = descField?.value || ''
+  state.study.maxWaves = parseInt(wavesField?.value || '1') || 1
+
+  // Step 2: best-effort scale match. The ResearchPack carries an abbr that
+  // we match against SCALE_LIBRARY's abbr (case-insensitive). Anything that
+  // doesn't match becomes a chip in the "Carried from ResearchFlow" banner
+  // so the user can see what's missing from the library and either add it
+  // manually as a custom-question block or request it be added upstream.
+  const matched = []
+  const unmatched = []
+  for (const inst of (pack.instruments || [])) {
+    const abbr = (inst.scaleAbbr || '').toLowerCase().trim()
+    const name = (inst.scaleName || '').toLowerCase().trim()
+    const hit = abbr || name
+      ? SCALE_LIBRARY.find(s =>
+          (abbr && s.abbr?.toLowerCase() === abbr) ||
+          (name && s.name?.toLowerCase() === name))
+      : null
+    if (hit) {
+      if (!state.study.selectedScales.includes(hit.id)) state.study.selectedScales.push(hit.id)
+      matched.push({ instrument: inst, scaleId: hit.id, abbr: hit.abbr })
+    } else {
+      unmatched.push(inst)
+    }
+  }
+  // Cache for the review screen to surface clearly.
+  state.study._researchPackBanner = {
+    title: pack.title || '',
+    field: pack.field || '',
+    theory: pack.theory?.name || '',
+    hypotheses: (pack.hypotheses || []).map(h => h.statement),
+    matchedAbbrs: matched.map(m => m.abbr),
+    unmatched: unmatched.map(u => `${u.scaleName}${u.scaleAbbr ? ` (${u.scaleAbbr})` : ''}`),
+  }
+
+  // Step 3: show a banner so the user knows what was carried + what's missing.
+  _showResearchPackBanner(state.study._researchPackBanner)
+}
+
+function _showResearchPackBanner(b) {
+  const host = document.getElementById('builder-step-1')
+  if (!host || document.getElementById('rp-banner')) return
+  const div = document.createElement('div')
+  div.id = 'rp-banner'
+  div.style.cssText = 'margin:0 0 18px;padding:14px 16px;border:1px solid var(--accent,#22d3ee);border-radius:10px;background:color-mix(in srgb,var(--accent,#22d3ee) 12%,transparent);font-size:13px;color:var(--text);line-height:1.55'
+  const matchTxt = b.matchedAbbrs.length
+    ? `<strong>${b.matchedAbbrs.length} scale${b.matchedAbbrs.length === 1 ? '' : 's'} pre-selected</strong> from your plan: ${b.matchedAbbrs.map(a => `<code style="padding:1px 6px;border-radius:4px;background:rgba(0,0,0,.06)">${a}</code>`).join(' ')}. Step 2 already has them ticked.`
+    : 'No scales matched the Cadence library yet — you can add them as custom questions in Step 3.'
+  const unmatchTxt = b.unmatched.length
+    ? `<div style="margin-top:6px;color:var(--muted,#666)"><em>Not in the library yet:</em> ${b.unmatched.join(', ')}.</div>`
+    : ''
+  const theoryTxt = b.theory ? `<div style="margin-top:4px;color:var(--muted,#666)"><em>Framework:</em> ${b.theory}</div>` : ''
+  div.innerHTML = `
+    <div style="font-weight:700;margin-bottom:4px;color:var(--text)">📦 Carried from ResearchFlow</div>
+    <div>${matchTxt}</div>
+    ${unmatchTxt}
+    ${theoryTxt}
+    <button onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:10px;background:transparent;border:none;cursor:pointer;font-size:18px;color:var(--muted,#666);padding:0;line-height:1">×</button>
+  `
+  div.style.position = 'relative'
+  host.insertBefore(div, host.firstChild)
+}
 
 // Theme toggle
 ;(function(){
