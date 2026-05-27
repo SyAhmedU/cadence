@@ -7681,6 +7681,18 @@ function publishStudy() {
   // Save to localStorage (keyed by studyId)
   localStorage.setItem(`cadence_study_${studyId}`, JSON.stringify(config))
 
+  // If this study was bootstrapped from a ResearchFlow pack, attach the pack
+  // to the published study so it travels onward to ToolsScope when the user
+  // hits "Open in ToolsScope" later. The pending pack key from applyResearchPack
+  // is now resolved against this concrete study id.
+  try {
+    const pending = localStorage.getItem('cadence_pending_pack')
+    if (pending) {
+      localStorage.setItem(`cadence_pack_${studyId}`, pending)
+      localStorage.removeItem('cadence_pending_pack')
+    }
+  } catch (_) {}
+
   // Build shareable URL
   const encoded = btoa(JSON.stringify(config))
   const url = `${location.origin}${location.pathname}#${encoded}`
@@ -8271,6 +8283,14 @@ function downloadMyData() {
 // via `#cadence=<base64>` and ToolsScope ingests them on load. Larger studies
 // would blow the hash limit, so we fall back to downloading the aggregate
 // and opening ToolsScope blank — the user uploads the file in the Data tab.
+// Encode an arbitrary string as URL-safe base64.
+function _packB64(str) {
+  const bytes = new TextEncoder().encode(str)
+  let bin = ''
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i])
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
 function openInToolsScope() {
   const studyId = state.study.id || document.getElementById('study-code-display').textContent
   const studyResponseKey = `cadence_responses_${studyId}`
@@ -8281,23 +8301,33 @@ function openInToolsScope() {
   }
   const base = 'https://toolsscope.vercel.app/'
   const json = JSON.stringify(responses)
+
+  // If this study was bootstrapped from a ResearchFlow pack, forward the pack
+  // alongside the data so ToolsScope still highlights the planned tests on
+  // the Cadence → ToolsScope path. The pack is tiny relative to responses;
+  // it always fits in the hash even when the responses don't.
+  let packFragment = ''
+  try {
+    const packJson = localStorage.getItem(`cadence_pack_${studyId}`)
+    if (packJson) packFragment = `&pack=${_packB64(packJson)}`
+  } catch (_) {}
+
   // Threshold below modern browsers' URL hash budget (Chrome/Edge ~80 kB, Firefox ~64 kB)
   // — leave headroom for the rest of the URL + base64 inflation (~33%).
   const HASH_LIMIT = 45000
   if (json.length <= HASH_LIMIT) {
-    const bytes = new TextEncoder().encode(json)
-    let bin = ''
-    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i])
-    const b64 = btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-    window.open(`${base}#cadence=${b64}`, '_blank', 'noopener,noreferrer')
+    const b64 = _packB64(json)
+    window.open(`${base}#cadence=${b64}${packFragment}`, '_blank', 'noopener,noreferrer')
   } else {
-    // Auto-download then open ToolsScope so the user just drops the file in.
+    // Responses too large for the hash, but the pack still rides through if
+    // we have one — ToolsScope can pre-fill suggestions before the upload.
     const blob = new Blob([json], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = `cadence_${studyId}_aggregate.json`
     a.click()
-    setTimeout(() => window.open(base, '_blank', 'noopener,noreferrer'), 150)
+    const target = packFragment ? `${base}#${packFragment.slice(1)}` : base
+    setTimeout(() => window.open(target, '_blank', 'noopener,noreferrer'), 150)
     alert(`Study has ${responses.length} responses — too large to send via URL. The aggregate JSON has been downloaded; upload it on the ToolsScope Data tab when it opens.`)
   }
 }
@@ -8783,6 +8813,11 @@ function _decodeResearchPack(b64) {
 }
 
 function applyResearchPack(pack) {
+  // Stash the raw pack so publishStudy() can attach it to the new study id
+  // once the user finishes the builder. Pending key is replaced by a
+  // per-study key (cadence_pack_<id>) on publish.
+  try { localStorage.setItem('cadence_pending_pack', JSON.stringify(pack)) } catch (_) {}
+
   // Step 1: open the builder and prefill the form.
   goTo('builder')
   setStep(1)
@@ -8810,40 +8845,99 @@ function applyResearchPack(pack) {
   state.study.desc = descField?.value || ''
   state.study.maxWaves = parseInt(wavesField?.value || '1') || 1
 
-  // Step 2: best-effort scale match. The ResearchPack carries an abbr that
-  // we match against SCALE_LIBRARY's abbr (case-insensitive). Anything that
-  // doesn't match becomes a chip in the "Carried from ResearchFlow" banner
-  // so the user can see what's missing from the library and either add it
-  // manually as a custom-question block or request it be added upstream.
+  // Step 2: scale matching. The AI's scale names are noisy ("Utrecht Work
+  // Engagement Scale (UWES-9)") and abbreviations carry version suffixes
+  // ("UWES-9", "MBI-GS", "PSS-10") that don't appear in the cadence library.
+  // We use a three-tier match — exact abbr, exact name, then token-overlap
+  // fuzzy — and surface the match confidence in the banner so the user can
+  // sanity-check what got auto-picked. Anything below the threshold becomes
+  // a chip in the "not in the library yet" list so the user can add it as a
+  // custom-question block or request it upstream.
   const matched = []
   const unmatched = []
   for (const inst of (pack.instruments || [])) {
-    const abbr = (inst.scaleAbbr || '').toLowerCase().trim()
-    const name = (inst.scaleName || '').toLowerCase().trim()
-    const hit = abbr || name
-      ? SCALE_LIBRARY.find(s =>
-          (abbr && s.abbr?.toLowerCase() === abbr) ||
-          (name && s.name?.toLowerCase() === name))
-      : null
+    const hit = _fuzzyMatchScale(inst)
     if (hit) {
-      if (!state.study.selectedScales.includes(hit.id)) state.study.selectedScales.push(hit.id)
-      matched.push({ instrument: inst, scaleId: hit.id, abbr: hit.abbr })
+      if (!state.study.selectedScales.includes(hit.scale.id)) state.study.selectedScales.push(hit.scale.id)
+      matched.push({ instrument: inst, scaleId: hit.scale.id, abbr: hit.scale.abbr, how: hit.how, score: hit.score })
     } else {
       unmatched.push(inst)
     }
   }
-  // Cache for the review screen to surface clearly.
+  // Cache for the review screen to surface clearly. We keep the match `how`
+  // so the banner can show what tier each scale matched on — exact abbr is
+  // unsurprising, but "stripped version" or "fuzzy 71%" is worth flagging so
+  // the user can sanity-check the auto-pick.
   state.study._researchPackBanner = {
     title: pack.title || '',
     field: pack.field || '',
     theory: pack.theory?.name || '',
     hypotheses: (pack.hypotheses || []).map(h => h.statement),
-    matchedAbbrs: matched.map(m => m.abbr),
+    matches: matched.map(m => ({ abbr: m.abbr, how: m.how, fuzzy: m.score < 0.95 })),
     unmatched: unmatched.map(u => `${u.scaleName}${u.scaleAbbr ? ` (${u.scaleAbbr})` : ''}`),
   }
 
   // Step 3: show a banner so the user knows what was carried + what's missing.
   _showResearchPackBanner(state.study._researchPackBanner)
+}
+
+// Fuzzy scale match against SCALE_LIBRARY. Returns the best hit with a label
+// describing *how* the match was made so the banner can be transparent about
+// auto-selections (and the user can decide whether to trust them).
+//
+// Tiers, in order:
+//   exact-abbr  — case-insensitive equality on the canonical abbr
+//   stem-abbr   — version suffixes stripped (UWES-9 → UWES, PSS-10 → PSS)
+//   exact-name  — case-insensitive equality on the full scale name
+//   token       — Jaccard overlap on tokenised names (≥ 0.6 wins, after
+//                 dropping low-signal words like "scale", "the", "of")
+function _fuzzyMatchScale(inst) {
+  const abbrIn = (inst.scaleAbbr || '').trim()
+  const nameIn = (inst.scaleName || '').trim()
+  if (!abbrIn && !nameIn) return null
+  const abbrL = abbrIn.toLowerCase()
+  const nameL = nameIn.toLowerCase()
+  const stem = abbrIn.replace(/[-_\s]*\d+\w*$/, '').toLowerCase()
+  const stemDash = abbrIn.replace(/[-_\s].*$/, '').toLowerCase()
+
+  // Tier 1+2: try abbr-based matches first — short, distinctive, low collision.
+  for (const s of SCALE_LIBRARY) {
+    if (!s.abbr) continue
+    const sAbbr = s.abbr.toLowerCase()
+    const sStem = s.abbr.replace(/[-_\s]*\d+\w*$/, '').toLowerCase()
+    if (abbrL && sAbbr === abbrL) return { scale: s, how: 'exact abbr', score: 1.0 }
+    if (stem && (sAbbr === stem || sStem === stem)) return { scale: s, how: 'stripped version', score: 0.95 }
+    if (stemDash && (sAbbr === stemDash || sStem === stemDash)) return { scale: s, how: 'stripped suffix', score: 0.9 }
+  }
+  // Tier 3: exact name.
+  for (const s of SCALE_LIBRARY) {
+    if (s.name && s.name.toLowerCase() === nameL) return { scale: s, how: 'exact name', score: 0.95 }
+  }
+  // Tier 4: token overlap on names. Drop low-signal tokens so "Utrecht Work
+  // Engagement Scale" matches "Utrecht Work Engagement Scale (UWES)".
+  const stop = new Set(['scale', 'inventory', 'questionnaire', 'survey', 'index', 'the', 'a', 'of', 'for', 'and', 'short', 'form', 'version', 'revised'])
+  function tokens(s) {
+    return new Set(
+      s.toLowerCase()
+        .replace(/\([^)]*\)/g, ' ')
+        .split(/[^a-z0-9]+/)
+        .filter(t => t && t.length > 1 && !stop.has(t))
+    )
+  }
+  if (!nameL) return null
+  const inTokens = tokens(nameIn)
+  if (inTokens.size === 0) return null
+  let best = null
+  for (const s of SCALE_LIBRARY) {
+    const sTokens = tokens(s.name || '')
+    if (sTokens.size === 0) continue
+    let inter = 0
+    for (const t of inTokens) if (sTokens.has(t)) inter++
+    if (inter === 0) continue
+    const score = inter / Math.max(inTokens.size, sTokens.size)
+    if (!best || score > best.score) best = { scale: s, how: `fuzzy (${(score * 100).toFixed(0)}%)`, score }
+  }
+  return (best && best.score >= 0.6) ? best : null
 }
 
 function _showResearchPackBanner(b) {
@@ -8852,8 +8946,9 @@ function _showResearchPackBanner(b) {
   const div = document.createElement('div')
   div.id = 'rp-banner'
   div.style.cssText = 'margin:0 0 18px;padding:14px 16px;border:1px solid var(--accent,#22d3ee);border-radius:10px;background:color-mix(in srgb,var(--accent,#22d3ee) 12%,transparent);font-size:13px;color:var(--text);line-height:1.55'
-  const matchTxt = b.matchedAbbrs.length
-    ? `<strong>${b.matchedAbbrs.length} scale${b.matchedAbbrs.length === 1 ? '' : 's'} pre-selected</strong> from your plan: ${b.matchedAbbrs.map(a => `<code style="padding:1px 6px;border-radius:4px;background:rgba(0,0,0,.06)">${a}</code>`).join(' ')}. Step 2 already has them ticked.`
+  const matches = b.matches || []
+  const matchTxt = matches.length
+    ? `<strong>${matches.length} scale${matches.length === 1 ? '' : 's'} pre-selected</strong> from your plan: ${matches.map(m => `<code style="padding:1px 6px;border-radius:4px;background:rgba(0,0,0,.06)">${m.abbr}</code>${m.fuzzy ? `<span style="font-size:11px;color:var(--muted,#888);margin-left:3px" title="Matched via ${m.how} — please verify">⚠ ${m.how}</span>` : ''}`).join(' ')}. Step 2 already has them ticked${matches.some(m => m.fuzzy) ? ' — review the ⚠ flagged ones to confirm the auto-pick is right' : ''}.`
     : 'No scales matched the Cadence library yet — you can add them as custom questions in Step 3.'
   const unmatchTxt = b.unmatched.length
     ? `<div style="margin-top:6px;color:var(--muted,#666)"><em>Not in the library yet:</em> ${b.unmatched.join(', ')}.</div>`
