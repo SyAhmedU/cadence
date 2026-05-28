@@ -9172,6 +9172,32 @@ function _showResearchPackBanner(b) {
   })
 })()
 </script>
+<!-- ─── Wobble: spring clicks + soft breathing, shared suite vibe ─── -->
+<style>
+.btn, .btn-primary, .btn-secondary, .btn-ghost, .btn-sm, button.btn,
+.syed-link, .theme-toggle, .panel-close, .gen-panel button, #gen-btn,
+.step-dot, .scale-card, .question-card {
+  transition: transform .55s cubic-bezier(.34, 1.5, .6, 1),
+              box-shadow .35s cubic-bezier(.22, 1, .36, 1),
+              border-color .25s ease-out, opacity .2s ease, color .2s ease, background .2s ease;
+}
+.btn:active, .btn-primary:active, .btn-secondary:active, #gen-btn:active,
+.syed-link:active, .theme-toggle:active {
+  transform: scale(.97) translateY(1px); transition-duration: .14s;
+}
+#ts-active-pill { animation: ts-bob 6s ease-in-out infinite; }
+@keyframes ts-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+/* The Generate panel itself softly breathes — invites use */
+.gen-panel { animation: gen-card-breath 8s ease-in-out infinite; will-change: box-shadow; }
+@keyframes gen-card-breath {
+  0%,100% { box-shadow: 0 0 0 0 rgba(241,69,117,0); }
+  50%     { box-shadow: 0 14px 32px -22px rgba(241,69,117,.35); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }
+}
+</style>
+
 <!-- ─── Research Suite — active-project pill (read-only; same-origin localStorage from the hub) ─── -->
 <style>
 #ts-active-pill {
