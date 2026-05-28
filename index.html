@@ -7383,7 +7383,13 @@ function showJoinPrompt() {
   const hash = location.hash.slice(1)
   if (hash) {
     try {
-      const cfg = JSON.parse(atob(hash))
+      // Use the Unicode-safe decoder so study names with curly quotes / emoji
+      // / non-ASCII characters round-trip cleanly. Falls back to plain atob
+      // for any old links that predate the Unicode-safe writer (ASCII-only
+      // payloads decode identically either way).
+      let json
+      try { json = _cadB64Dec(hash) } catch (_) { json = atob(hash) }
+      const cfg = JSON.parse(json)
       state.session.studyConfig = cfg
       prefillJoin(cfg)
     } catch(e) {}
@@ -7660,63 +7666,88 @@ function renderReview() {
 }
 
 // ---- Publish ----
+// Unicode-safe base64: plain btoa() throws on characters outside Latin-1 (e.g.
+// curly quotes, em dashes, emoji, ₹). That silent throw is why the Publish
+// button used to do nothing for many real study names. ASCII-only inputs
+// produce IDENTICAL output, so old shared links still parse cleanly.
+function _cadB64Enc(str) {
+  const bytes = new TextEncoder().encode(str)
+  let bin = ''
+  for (const b of bytes) bin += String.fromCharCode(b)
+  return btoa(bin)
+}
+function _cadB64Dec(b64) {
+  const bin = atob(b64)
+  const bytes = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+  return new TextDecoder().decode(bytes)
+}
+
 function publishStudy() {
   const totalItems = state.study.selectedScales.reduce((a, id) => a + getEffectiveItemCount(id), 0) + state.study.customQuestions.length
   if (totalItems === 0) { toast('Add at least one question first.'); return }
 
-  const studyId = generateCode(6)
-  state.study.id = studyId
-  state.study.createdAt = new Date().toISOString()
-
-  const config = {
-    id: studyId,
-    name: state.study.name,
-    desc: state.study.desc,
-    researcher: state.study.researcher,
-    maxWaves: state.study.maxWaves,
-    selectedScaleIds: state.study.selectedScales,
-    scaleDimensions: state.study.scaleDimensions,
-    customQuestions: state.study.customQuestions,
-    createdAt: state.study.createdAt,
-  }
-
-  // Save to localStorage (keyed by studyId)
-  localStorage.setItem(`cadence_study_${studyId}`, JSON.stringify(config))
-
-  // If this study was bootstrapped from a ResearchFlow pack, attach the pack
-  // to the published study so it travels onward to ToolsScope when the user
-  // hits "Open in ToolsScope" later. The pending pack key from applyResearchPack
-  // is now resolved against this concrete study id.
   try {
-    const pending = localStorage.getItem('cadence_pending_pack')
-    if (pending) {
-      localStorage.setItem(`cadence_pack_${studyId}`, pending)
-      localStorage.removeItem('cadence_pending_pack')
+    const studyId = generateCode(6)
+    state.study.id = studyId
+    state.study.createdAt = new Date().toISOString()
+
+    const config = {
+      id: studyId,
+      name: state.study.name,
+      desc: state.study.desc,
+      researcher: state.study.researcher,
+      maxWaves: state.study.maxWaves,
+      selectedScaleIds: state.study.selectedScales,
+      scaleDimensions: state.study.scaleDimensions,
+      customQuestions: state.study.customQuestions,
+      createdAt: state.study.createdAt,
     }
-  } catch (_) {}
 
-  // Build shareable URL
-  const encoded = btoa(JSON.stringify(config))
-  const url = `${location.origin}${location.pathname}#${encoded}`
+    // Save to localStorage (keyed by studyId)
+    localStorage.setItem(`cadence_study_${studyId}`, JSON.stringify(config))
 
-  document.getElementById('study-link-display').value = url
-  document.getElementById('study-code-display').textContent = studyId
+    // If this study was bootstrapped from a ResearchFlow pack, attach the pack
+    // to the published study so it travels onward to ToolsScope when the user
+    // hits "Open in ToolsScope" later.
+    try {
+      const pending = localStorage.getItem('cadence_pending_pack')
+      if (pending) {
+        localStorage.setItem(`cadence_pack_${studyId}`, pending)
+        localStorage.removeItem('cadence_pending_pack')
+      }
+    } catch (_) {}
 
-  // Generate QR code
-  const qrContainer = document.getElementById('qr-container')
-  qrContainer.innerHTML = ''
-  if (typeof QRCode !== 'undefined') {
-    new QRCode(qrContainer, {
-      text: url,
-      width: 160,
-      height: 160,
-      colorDark: '#1a1a2e',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M,
-    })
+    // Build shareable URL (Unicode-safe encode)
+    const encoded = _cadB64Enc(JSON.stringify(config))
+    const url = `${location.origin}${location.pathname}#${encoded}`
+
+    document.getElementById('study-link-display').value = url
+    document.getElementById('study-code-display').textContent = studyId
+
+    // Generate QR code — wrap so a CDN/library failure can't sabotage publish.
+    try {
+      const qrContainer = document.getElementById('qr-container')
+      qrContainer.innerHTML = ''
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(qrContainer, {
+          text: url,
+          width: 160,
+          height: 160,
+          colorDark: '#1a1a2e',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M,
+        })
+      }
+    } catch (qrErr) {
+      console.warn('[cadence] QR generation failed (study still published):', qrErr)
+    }
+
+    goTo('study-done')
+  } catch (err) {
+    console.error('[cadence] publishStudy failed:', err)
+    toast('Could not publish: ' + (err && err.message ? err.message : 'unknown error'))
   }
-
-  goTo('study-done')
 }
 
 function copyStudyLink() {
