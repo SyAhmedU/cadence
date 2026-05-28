@@ -8979,5 +8979,42 @@ function _showResearchPackBanner(b) {
   })
 })()
 </script>
+<!-- ─── Research Suite — active-project pill (read-only; same-origin localStorage from the hub) ─── -->
+<style>
+#ts-active-pill {
+  position: fixed; top: 56px; right: 14px; z-index: 50;
+  display: none; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255,150,86,.18), rgba(241,69,117,.15), rgba(146,112,244,.22));
+  color: #1a1626; font-size: .72rem; font-weight: 700;
+  text-decoration: none; border: 1px solid rgba(241,69,117,.35);
+  font-family: 'Plus Jakarta Sans','Inter',system-ui,sans-serif;
+  box-shadow: 0 6px 18px -8px rgba(241,69,117,.4);
+  transition: transform .15s, box-shadow .15s;
+  max-width: 60vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#ts-active-pill.show { display: inline-flex; }
+#ts-active-pill:hover { transform: translateY(-1px); box-shadow: 0 10px 24px -10px rgba(241,69,117,.55); }
+[data-theme="dark"] #ts-active-pill { color: #f4eff8; background: linear-gradient(135deg, rgba(255,150,86,.22), rgba(241,69,117,.18), rgba(146,112,244,.28)); }
+#ts-active-pill .ts-dot { color: #F14575; font-size: 1rem; line-height: 1; }
+#ts-active-pill .ts-name { font-weight: 800; }
+#ts-active-pill .ts-arrow { opacity: .7; margin-left: 2px; }
+</style>
+<a id="ts-active-pill" href="https://syahmedu.github.io/research-suite/" title="Open your active project on Throughline (the suite hub)" rel="noopener">
+  <span class="ts-dot">●</span> <span class="ts-name" id="ts-active-pill-name">project</span> <span class="ts-arrow">↗</span>
+</a>
+<script>
+(function(){
+  try {
+    var id = localStorage.getItem('active_project_id');
+    var name = localStorage.getItem('active_project_name');
+    if (id && name) {
+      var pill = document.getElementById('ts-active-pill');
+      var nm = document.getElementById('ts-active-pill-name');
+      if (pill && nm) { nm.textContent = name; pill.classList.add('show'); }
+    }
+  } catch(e) {}
+})();
+</script>
 </body>
 </html>
