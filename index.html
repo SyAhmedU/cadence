@@ -1763,6 +1763,20 @@
     <div class="builder-section-title">Tell us about your study</div>
     <div class="builder-section-sub">Give your study a name and description. Participants will see this before they begin.</div>
 
+    <!-- Generate panel: describe the study in plain English; AI fills the form below. -->
+    <div class="gen-panel" style="margin-bottom:22px;padding:14px 16px;border:1px solid rgba(241,69,117,.3);border-radius:12px;background:linear-gradient(135deg,rgba(255,150,86,.08),rgba(241,69,117,.06),rgba(146,112,244,.1));">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="font-weight:700;font-size:14px;color:var(--text)">✨ Generate from text</span>
+        <span style="font-weight:500;color:var(--text-secondary,#6F6F7E);font-size:12px">describe your study, skip the form</span>
+      </div>
+      <textarea id="gen-input" placeholder="e.g. Wave-1 survey on burnout and work engagement in Indian nurses, weekly waves for a month, ~150 participants, simple demographics"
+        style="width:100%;min-height:74px;padding:9px 11px;border:1px solid var(--border);border-radius:7px;background:var(--surface,#fff);color:var(--text);font-family:inherit;font-size:14px;line-height:1.5;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:var(--text-secondary,#6F6F7E);">Calls the suite's AI (ResearchFlow) · the form below gets pre-filled, you stay in control</span>
+        <button class="btn btn-primary btn-sm" id="gen-btn" onclick="cadenceGenerateFromText()">✨ Generate</button>
+      </div>
+    </div>
+
     <div class="field">
       <label>Study Name *</label>
       <input type="text" id="study-name" placeholder="e.g. Wellbeing at Work — Wave 2" maxlength="80">
@@ -7663,6 +7677,120 @@ function renderReview() {
     </div>
     ${totalItems === 0 ? `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Add at least one scale or custom question before publishing.</p></div>` : ''}
   `
+}
+
+// ---- Generate (suite-wide AI hand-off) ----
+// Calls ResearchFlow's generic /api/generate endpoint with a structured
+// prompt that lists Cadence's embedded scale library, then pre-fills the
+// builder form fields + state.study.selectedScales + customQuestions from
+// the returned JSON. Honest about failures: if ResearchFlow's AI key isn't
+// set on Vercel yet, we toast that fact so the user knows the path is
+// real, just needs configuration.
+const RF_GENERATE_URL = 'https://researchflow-syahmedus-projects.vercel.app/api/generate'
+
+async function cadenceGenerateFromText() {
+  const text = (document.getElementById('gen-input')?.value || '').trim()
+  if (!text) { toast('Describe your study first.'); return }
+  const btn = document.getElementById('gen-btn')
+  const original = btn.textContent
+  btn.disabled = true; btn.textContent = 'Generating…'
+  try {
+    const scaleList = SCALE_LIBRARY
+      .map(s => `${s.abbr} — ${s.name} (${s.construct})`)
+      .join('\n')
+    const prompt =
+`You're helping a researcher set up a study in Cadence (an immersive survey tool).
+
+The researcher described the study as:
+"""${text}"""
+
+VALIDATED SCALES available in Cadence's embedded library — copy abbreviations EXACTLY:
+${scaleList}
+
+Build a study config. Return JSON with this shape:
+{
+  "name": "Study name (≤ 80 chars, participant-facing)",
+  "desc": "1-2 sentence participant-facing description",
+  "researcher": "Researcher / institution (or empty string if not given)",
+  "maxWaves": 1 | 2 | 3 | 4 | 6,
+  "scales": ["abbreviation strings from the list above — pick only those that fit"],
+  "customQuestions": [
+    { "text": "the question prompt", "type": "open" | "choice" | "likert5" | "likert7", "choices": ["A","B"] }
+  ]
+}
+
+Pick scales that genuinely match what the researcher described. Add custom questions only when they fill a real gap the scales don't cover (e.g. demographics, free-form context). For 'choice' type, include 2-6 short option strings.`
+    const r = await fetch(RF_GENERATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, schema_hint: 'Cadence study config', temperature: 0.55 }),
+    })
+    if (!r.ok) {
+      let detail = ''
+      try { detail = (await r.json()).detail || '' } catch (_) {}
+      if (r.status === 503 || /GROQ_API_KEY/i.test(detail)) {
+        toast("AI isn't configured on ResearchFlow's Vercel yet (GROQ_API_KEY). Fill the fields manually for now.")
+        return
+      }
+      throw new Error(detail || `HTTP ${r.status}`)
+    }
+    const { result } = await r.json()
+    if (!result || typeof result !== 'object') throw new Error('Empty AI response.')
+
+    // Apply to form fields
+    if (result.name) document.getElementById('study-name').value = String(result.name).slice(0, 80)
+    if (result.desc) document.getElementById('study-desc').value = String(result.desc)
+    if (result.researcher) document.getElementById('study-researcher').value = String(result.researcher).slice(0, 100)
+    const wavesVal = Number(result.maxWaves)
+    if ([1, 2, 3, 4, 6].includes(wavesVal)) document.getElementById('study-waves').value = String(wavesVal)
+    // Mirror into state so step 2/3 see them when navigated to
+    state.study.name = document.getElementById('study-name').value
+    state.study.desc = document.getElementById('study-desc').value
+    state.study.researcher = document.getElementById('study-researcher').value
+    state.study.maxWaves = wavesVal || state.study.maxWaves
+
+    // Apply scales by abbreviation (case-insensitive)
+    let scalesFound = 0
+    let scalesMissed = []
+    if (Array.isArray(result.scales)) {
+      state.study.selectedScales = []
+      for (const abbr of result.scales) {
+        const target = String(abbr).toLowerCase().trim()
+        const match = SCALE_LIBRARY.find(s => (s.abbr || '').toLowerCase() === target)
+        if (match) { state.study.selectedScales.push(match.id); scalesFound++ }
+        else { scalesMissed.push(abbr) }
+      }
+    }
+
+    // Apply custom questions
+    let qsAdded = 0
+    if (Array.isArray(result.customQuestions)) {
+      state.study.customQuestions = []
+      for (const q of result.customQuestions) {
+        if (!q || !q.text) continue
+        const type = ['open', 'choice', 'likert5', 'likert7'].includes(q.type) ? q.type : 'open'
+        const item = { text: String(q.text), type }
+        if (type === 'choice' && Array.isArray(q.choices)) {
+          item.choices = q.choices.map(c => String(c)).filter(Boolean).slice(0, 8)
+          if (item.choices.length < 2) item.choices = ['Yes', 'No']
+        }
+        state.study.customQuestions.push(item)
+        qsAdded++
+      }
+    }
+
+    const bits = []
+    bits.push(`${scalesFound} scale${scalesFound === 1 ? '' : 's'}`)
+    bits.push(`${qsAdded} custom question${qsAdded === 1 ? '' : 's'}`)
+    let msg = `✨ Generated: ${bits.join(', ')}. Review and click "Choose Scales →"`
+    if (scalesMissed.length) msg += ` (couldn't match: ${scalesMissed.slice(0, 3).join(', ')})`
+    toast(msg)
+  } catch (e) {
+    console.error('[cadence] generate failed:', e)
+    toast('Could not generate: ' + ((e && e.message) || 'unknown error'))
+  } finally {
+    btn.disabled = false; btn.textContent = original
+  }
 }
 
 // ---- Publish ----
