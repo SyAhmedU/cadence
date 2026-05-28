@@ -7679,6 +7679,40 @@ function renderReview() {
   `
 }
 
+// ---- Quick Start hand-off receiver ----
+// ?gen=<topic> from the hub Quick Start lands the user on the builder
+// with the Generate input pre-filled and the generate kicked off — so
+// they arrive in a populated builder instead of a blank step 1.
+(function(){
+  try {
+    const params = new URLSearchParams(location.search);
+    const topic = params.get('gen');
+    if (!topic) return;
+    // Strip the param so reload doesn't re-trigger.
+    history.replaceState(null, '', location.pathname + (location.hash || ''));
+    function tryFire() {
+      const input = document.getElementById('gen-input');
+      const btn = document.getElementById('gen-btn');
+      // Ensure we're on the builder screen (this runs early; screens may
+      // still be initialising).
+      if (typeof goTo === 'function') {
+        try { goTo('builder'); } catch (_) {}
+      }
+      if (input && btn && typeof cadenceGenerateFromText === 'function') {
+        input.value = topic;
+        cadenceGenerateFromText();
+      } else {
+        setTimeout(tryFire, 200);
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => setTimeout(tryFire, 300));
+    } else {
+      setTimeout(tryFire, 300);
+    }
+  } catch (e) { /* ignore */ }
+})();
+
 // ---- Generate (suite-wide AI hand-off) ----
 // Calls ResearchFlow's generic /api/generate endpoint with a structured
 // prompt that lists Cadence's embedded scale library, then pre-fills the
