@@ -1890,6 +1890,11 @@ html,body{ overflow-x:clip; }
       </select>
     </div>
 
+    <div class="field">
+      <label>Consent statement <span style="font-weight:400;color:var(--text-secondary);font-size:12px;">— shown before the survey; participants must agree to start</span></label>
+      <textarea id="study-consent" maxlength="1500" placeholder="Leave blank to use the standard notice (voluntary, anonymous, withdrawable). Or write your own — e.g. include your IRB/ethics approval number and contact details."></textarea>
+    </div>
+
     <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:32px;">
       <button class="btn btn-primary" onclick="builderNext(1)">Choose Scales →</button>
     </div>
@@ -7526,6 +7531,7 @@ function builderNext(step) {
     state.study.name = name
     state.study.desc = document.getElementById('study-desc').value.trim()
     state.study.researcher = document.getElementById('study-researcher').value.trim()
+    state.study.consentText = document.getElementById('study-consent').value.trim()
     state.study.maxWaves = parseInt(document.getElementById('study-waves').value)
     setStep(2)
     initDomainFilter()
@@ -7965,6 +7971,7 @@ function publishStudy() {
       name: state.study.name,
       desc: state.study.desc,
       researcher: state.study.researcher,
+      consentText: state.study.consentText || '',
       maxWaves: state.study.maxWaves,
       selectedScaleIds: state.study.selectedScales,
       scaleDimensions: state.study.scaleDimensions,
