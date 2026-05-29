@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Cadence — Immersive Surveys for Longitudinal Research</title>
 <meta name="description" content="Typeform-style longitudinal survey tool with wave tracking, participant codes, milestone celebrations, and a researcher analytics dashboard (means, α, distributions).">
 <meta name="theme-color" content="#FBF7EF">
@@ -24,7 +24,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>(function(){try{var t=localStorage.getItem('syed-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1708,6 +1708,18 @@
 [data-theme="light"] .theme-toggle .moon{display:inline}
 [data-theme="dark"] .theme-toggle .sun{display:inline}
 @media(max-width:640px){.syed-links{display:none}}
+</style>
+<style id="sx-infuse">
+/* ═══ Throughline identity + mobile-native (cadence) ═══ */
+:root{ --font-display:'Fraunces',Georgia,'Times New Roman',serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace; }
+h1,h2,h3{ font-family:var(--font-display); font-weight:600; letter-spacing:-.02em; }
+html,body{ overflow-x:clip; }
+*{ -webkit-tap-highlight-color:transparent; }
+.syed-bar{ padding-top:env(safe-area-inset-top,0px); height:calc(48px + env(safe-area-inset-top,0px)); }
+@media (hover:none){ button:hover{ transform:none; } }
+@media (max-width:600px){
+  button, .btn, [role="button"]{ min-height:46px; }
+}
 </style>
 </head>
 <body>
