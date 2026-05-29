@@ -742,6 +742,8 @@
     font-size: 14px; color: var(--text); cursor: pointer; line-height: 1.5;
   }
   .intro-consent-check input { margin-top: 3px; width: 17px; height: 17px; accent-color: var(--accent); flex: none; cursor: pointer; }
+  .intro-consent-policy { display: inline-block; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--accent); text-decoration: none; }
+  .intro-consent-policy:hover { text-decoration: underline; }
   .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
   /* ---- SURVEY SCREEN ---- */
@@ -2067,6 +2069,7 @@ html,body{ overflow-x:clip; }
         <input type="checkbox" id="consent-checkbox" onchange="onConsentToggle()" />
         <span>I have read the above and voluntarily consent to take part.</span>
       </label>
+      <a class="intro-consent-policy" href="https://syahmedu.github.io/research-suite/privacy.html" target="_blank" rel="noopener">How your data is handled →</a>
     </div>
 
     <button class="btn btn-primary" id="begin-btn" style="font-size:17px; padding:16px 40px;" onclick="beginSurvey()" disabled>Begin →</button>
