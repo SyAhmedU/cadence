@@ -719,6 +719,31 @@
     font-weight: 500;
   }
 
+  /* ---- CONSENT GATE (intro) ---- */
+  .intro-consent {
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin: 0 0 24px;
+    max-width: 540px;
+  }
+  .intro-consent-title {
+    font-size: 13px; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+  }
+  .intro-consent-text {
+    font-size: 13.5px; color: var(--text-secondary); line-height: 1.6;
+    margin-bottom: 14px; white-space: pre-line;
+  }
+  .intro-consent-check {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 14px; color: var(--text); cursor: pointer; line-height: 1.5;
+  }
+  .intro-consent-check input { margin-top: 3px; width: 17px; height: 17px; accent-color: var(--accent); flex: none; cursor: pointer; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
   /* ---- SURVEY SCREEN ---- */
   #screen-survey {
     flex-direction: column;
@@ -2014,8 +2039,21 @@ html,body{ overflow-x:clip; }
       <div class="chip">📊 <span id="intro-q-count">0 questions</span></div>
       <div class="chip">🔒 Anonymous</div>
     </div>
-    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:32px; line-height:1.5;">Use <strong>1–7</strong> keys or arrow keys to navigate. Press <strong>Enter</strong> or <strong>→</strong> to advance.</div>
-    <button class="btn btn-primary" style="font-size:17px; padding:16px 40px;" onclick="beginSurvey()">Begin →</button>
+    <div style="font-size:13px; color:var(--text-secondary); margin-bottom:24px; line-height:1.5;">Use <strong>1–7</strong> keys or arrow keys to navigate. Press <strong>Enter</strong> or <strong>→</strong> to advance.</div>
+
+    <!-- Informed-consent gate (IRB-readiness). Text comes from the study's
+         consentText if set, else a sensible default. The Begin button stays
+         disabled until the participant ticks the box. -->
+    <div class="intro-consent" id="intro-consent">
+      <div class="intro-consent-title">Before you begin — your consent</div>
+      <div class="intro-consent-text" id="intro-consent-text"></div>
+      <label class="intro-consent-check">
+        <input type="checkbox" id="consent-checkbox" onchange="onConsentToggle()" />
+        <span>I have read the above and voluntarily consent to take part.</span>
+      </label>
+    </div>
+
+    <button class="btn btn-primary" id="begin-btn" style="font-size:17px; padding:16px 40px;" onclick="beginSurvey()" disabled>Begin →</button>
   </div>
 </div>
 
@@ -8216,15 +8254,42 @@ function buildQuestionList(cfg) {
   return qs
 }
 
+// Default informed-consent statement. A study can override it by setting
+// `consentText` on its config; otherwise this generic, IRB-friendly notice
+// is shown. Kept deliberately plain — voluntary, anonymous, withdrawable.
+const DEFAULT_CONSENT_TEXT =
+  'Your participation is voluntary. You can stop at any time and you may skip questions. ' +
+  'Your responses are recorded anonymously under a random participant code — this survey does ' +
+  'not collect your name, email, or contact details. Your answers will be used for research ' +
+  'purposes. If you have any questions, please contact the researcher who shared this study with you.'
+
 function startSurvey() {
   const cfg = state.session.studyConfig
   const n = state.session.questions.length
   document.getElementById('intro-q-count').textContent = `${n} question${n !== 1 ? 's' : ''}`
   document.getElementById('intro-time-estimate').textContent = `~${Math.ceil(n * 0.5)} min`
+  // Reset + populate the consent gate each time the intro is shown.
+  const ct = document.getElementById('intro-consent-text')
+  if (ct) ct.textContent = (cfg && cfg.consentText) ? cfg.consentText : DEFAULT_CONSENT_TEXT
+  const cb = document.getElementById('consent-checkbox')
+  if (cb) cb.checked = false
+  const begin = document.getElementById('begin-btn')
+  if (begin) begin.disabled = true
   goTo('intro')
 }
 
+// Enable the Begin button only once consent is ticked.
+function onConsentToggle() {
+  const cb = document.getElementById('consent-checkbox')
+  const begin = document.getElementById('begin-btn')
+  if (begin) begin.disabled = !(cb && cb.checked)
+}
+
 function beginSurvey() {
+  // Defensive: never start without recorded consent.
+  const cb = document.getElementById('consent-checkbox')
+  if (!cb || !cb.checked) return
+  state.session.consentedAt = new Date().toISOString()
   goTo('survey')
   renderQuestion(state.session.currentQ)
 }
@@ -8477,6 +8542,7 @@ function completeSurvey() {
     waveNum,
     completedAt: new Date().toISOString(),
     startedAt: state.session.startedAt,
+    consentedAt: state.session.consentedAt || null,
     answers: state.session.answers,
     questions: state.session.questions.map((q, i) => ({
       idx: i,
