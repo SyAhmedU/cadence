@@ -1350,6 +1350,17 @@
     margin-bottom: 20px;
   }
 
+  .complete-purge { margin-top: 8px; max-width: 420px; }
+  .link-danger {
+    background: none; border: none; padding: 2px; cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 600; color: #d6455f;
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .link-danger:hover { color: #b3324a; }
+  .complete-purge-note {
+    font-size: 12px; color: var(--text-tertiary); line-height: 1.5; margin-top: 6px;
+  }
+
   /* ---- DIVIDERS ---- */
   .divider {
     height: 1px;
@@ -2103,6 +2114,10 @@ html,body{ overflow-x:clip; }
   <div class="complete-actions">
     <button class="btn btn-secondary" onclick="downloadMyData()">Download My Data (JSON)</button>
     <button class="btn btn-primary" onclick="goTo('landing')">Done</button>
+  </div>
+  <div class="complete-purge">
+    <button class="link-danger" onclick="deleteMyData()">Delete my responses from this device</button>
+    <div class="complete-purge-note">Removes everything you submitted for this study from this browser. Export first if you want a copy — this can't be undone.</div>
   </div>
 </div>
 
@@ -8590,6 +8605,36 @@ function downloadMyData() {
   a.href = URL.createObjectURL(blob)
   a.download = `cadence_${cfg.id}_${pc}.json`
   a.click()
+}
+
+// Participant's right-to-erasure: purge everything this participant submitted
+// for this study from this device — their per-participant wave record, and
+// their entries in the study-level aggregate (filtered by participantCode).
+// Irreversible, so we confirm first and nudge an export.
+function deleteMyData() {
+  const cfg = state.session.studyConfig
+  const pc = state.session.participantCode
+  if (!cfg || !pc) return
+  if (!confirm(`Permanently delete all responses for participant ${pc} from this device? This can't be undone — download your data first if you want a copy.`)) return
+
+  // 1) Remove this participant's wave record.
+  try { localStorage.removeItem(`cadence_wave_${cfg.id}_${pc}`) } catch (e) {}
+
+  // 2) Drop this participant's rows from the study-level aggregate.
+  try {
+    const studyResponseKey = `cadence_responses_${cfg.id}`
+    const all = JSON.parse(localStorage.getItem(studyResponseKey) || '[]')
+    const kept = all.filter(r => r.participantCode !== pc)
+    if (kept.length) localStorage.setItem(studyResponseKey, JSON.stringify(kept))
+    else localStorage.removeItem(studyResponseKey)
+  } catch (e) {}
+
+  const sub = document.getElementById('complete-sub')
+  if (sub) sub.textContent = `Your responses for participant ${pc} have been deleted from this device.`
+  const note = document.getElementById('wave-continue-note')
+  if (note) note.textContent = ''
+  const purge = document.querySelector('.complete-purge')
+  if (purge) purge.style.display = 'none'
 }
 
 // Send the full study aggregate to ToolsScope for analysis. Small studies
