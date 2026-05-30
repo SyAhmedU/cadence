@@ -8053,6 +8053,14 @@ function copyStudyCode() {
 // =====================================================================
 function prefillJoin(cfg) {
   document.getElementById('join-study-code').value = cfg.id || ''
+  // Prefill the participant's last code for this study, so a reload mid-survey
+  // can find (and offer to resume) their saved progress instead of generating
+  // a fresh, un-resumable code.
+  try {
+    const last = cfg.id ? localStorage.getItem(`cadence_lastpc_${cfg.id}`) : null
+    const pcEl = document.getElementById('join-participant-code')
+    if (last && pcEl && !pcEl.value) pcEl.value = last
+  } catch (e) { /* ignore */ }
 }
 
 function joinStudy() {
@@ -8079,6 +8087,8 @@ function joinStudy() {
 
   // Determine participant code and wave
   let participantCode = pcInput || generateCode(6)
+  // Remember it for this study so a reload can prefill + resume.
+  try { localStorage.setItem(`cadence_lastpc_${cfg.id}`, participantCode) } catch (e) {}
   const waveKey = `cadence_wave_${cfg.id}_${participantCode}`
   const waveData = localStorage.getItem(waveKey)
   let waveNum = 1
@@ -8103,6 +8113,29 @@ function joinStudy() {
 
   // Build question list
   state.session.questions = buildQuestionList(cfg)
+
+  // Resume an in-progress wave if saved progress exists for this participant.
+  try {
+    const raw = localStorage.getItem(`cadence_progress_${cfg.id}_${participantCode}`)
+    if (raw) {
+      const prog = JSON.parse(raw)
+      const n = state.session.questions.length
+      if (prog && prog.waveNum === waveNum && typeof prog.currentQ === 'number'
+          && prog.currentQ > 0 && prog.currentQ < n) {
+        if (confirm(`Welcome back — you were on question ${prog.currentQ + 1} of ${n}. Resume where you left off?\n\nOK = resume   ·   Cancel = start this wave over`)) {
+          state.session.answers = prog.answers || {}
+          state.session.currentQ = prog.currentQ
+          state.session.milestoneShown = prog.milestoneShown || { 25: false, 50: false, 75: false }
+          state.session.consentedAt = prog.consentedAt || new Date().toISOString()
+          state.session.startedAt = prog.startedAt || state.session.startedAt
+          goTo('survey')
+          renderQuestion(state.session.currentQ)
+          return
+        }
+        localStorage.removeItem(`cadence_progress_${cfg.id}_${participantCode}`)
+      }
+    }
+  } catch (e) { /* ignore malformed progress */ }
 
   // Show join info
   const waveBadge = document.getElementById('join-wave-badge')
@@ -8356,6 +8389,7 @@ function renderQuestion(idx) {
   }
 
   updateNextBtn(idx)
+  saveProgress()
 }
 
 function renderLikert(idx, q) {
@@ -8406,6 +8440,7 @@ function selectDemoOpt(idx, val, el) {
   el.closest('.choice-grid').querySelectorAll('.choice-opt').forEach(e => e.classList.remove('selected'))
   el.classList.add('selected')
   updateNextBtn(idx)
+  saveProgress()
 }
 
 function toggleMultiCheck(idx, val, el) {
@@ -8417,6 +8452,7 @@ function toggleMultiCheck(idx, val, el) {
   state.session.answers[idx] = [...current]
   el.classList.toggle('selected', current.includes(val))
   updateNextBtn(idx)
+  saveProgress()
 }
 
 function renderCustomInput(idx, q) {
@@ -8459,6 +8495,7 @@ function selectChoice(idx, val, el) {
   document.querySelectorAll('.choice-opt').forEach(e => e.classList.remove('selected'))
   el.classList.add('selected')
   updateNextBtn(idx)
+  saveProgress()
   clearTimeout(window._autoAdvance)
   window._autoAdvance = setTimeout(() => nextQuestion(), 600)
 }
@@ -8466,6 +8503,7 @@ function selectChoice(idx, val, el) {
 function setAnswer(idx, val) {
   state.session.answers[idx] = val
   updateNextBtn(idx)
+  saveProgress()
 }
 
 function updateNextBtn(idx) {
@@ -8555,6 +8593,32 @@ function surveyBack() {
   renderQuestion(idx - 1)
 }
 
+// ── Mid-survey progress (resume on reload) ──────────────────────────
+// A participant's in-progress wave lives only in memory, so any reload or
+// freeze used to drop them back to question 1. We persist progress per
+// study+participant+wave as they answer, and offer to resume on re-join.
+function _progressKey() {
+  const s = state.session
+  if (!s || !s.studyConfig || !s.participantCode) return null
+  return `cadence_progress_${s.studyConfig.id}_${s.participantCode}`
+}
+function saveProgress() {
+  const key = _progressKey()
+  if (!key) return
+  const s = state.session
+  try {
+    localStorage.setItem(key, JSON.stringify({
+      waveNum: s.waveNum, currentQ: s.currentQ, answers: s.answers,
+      milestoneShown: s.milestoneShown, startedAt: s.startedAt,
+      consentedAt: s.consentedAt || null, ts: Date.now(),
+    }))
+  } catch (e) { /* quota — ignore */ }
+}
+function clearProgress() {
+  const key = _progressKey()
+  if (key) { try { localStorage.removeItem(key) } catch (e) {} }
+}
+
 function completeSurvey() {
   const cfg = state.session.studyConfig
   const pc = state.session.participantCode
@@ -8590,6 +8654,9 @@ function completeSurvey() {
   const studyResponses = JSON.parse(localStorage.getItem(studyResponseKey) || '[]')
   studyResponses.push(response)
   localStorage.setItem(studyResponseKey, JSON.stringify(studyResponses))
+
+  // Wave finished — drop the in-progress resume snapshot.
+  clearProgress()
 
   // Update UI
   const sub = document.getElementById('complete-sub')
@@ -8627,8 +8694,11 @@ function deleteMyData() {
   if (!cfg || !pc) return
   if (!confirm(`Permanently delete all responses for participant ${pc} from this device? This can't be undone — download your data first if you want a copy.`)) return
 
-  // 1) Remove this participant's wave record.
+  // 1) Remove this participant's wave record, in-progress snapshot, and the
+  //    remembered participant-code pointer.
   try { localStorage.removeItem(`cadence_wave_${cfg.id}_${pc}`) } catch (e) {}
+  try { localStorage.removeItem(`cadence_progress_${cfg.id}_${pc}`) } catch (e) {}
+  try { if (localStorage.getItem(`cadence_lastpc_${cfg.id}`) === pc) localStorage.removeItem(`cadence_lastpc_${cfg.id}`) } catch (e) {}
 
   // 2) Drop this participant's rows from the study-level aggregate.
   try {
