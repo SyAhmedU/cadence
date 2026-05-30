@@ -279,6 +279,27 @@
     width: 100%;
   }
 
+  /* Sticky top nav for long builder steps (e.g. scale selection) */
+  .builder-top-actions {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 0;
+    margin: 4px 0 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .builder-sel-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
   .builder-section-title {
     font-size: 28px;
     font-weight: 700;
@@ -1906,6 +1927,13 @@ html,body{ overflow-x:clip; }
   <div class="builder-body" id="builder-step-2" style="display:none;">
     <div class="builder-section-title">Add validated scales</div>
     <div class="builder-section-sub" id="scale-lib-sub">Select from the library. Items, response formats, and scoring are pre-loaded.</div>
+
+    <!-- Sticky top nav so you don't have to scroll the whole library to continue. -->
+    <div class="builder-top-actions">
+      <button class="btn btn-secondary btn-sm" onclick="builderBack(2)">← Back</button>
+      <span class="builder-sel-count" id="scale-sel-count">0 scales selected</span>
+      <button class="btn btn-primary btn-sm" onclick="builderNext(2)">Add Custom Questions →</button>
+    </div>
 
     <div style="margin-bottom:14px;">
       <input type="search" id="scale-search" placeholder="Search by name or abbreviation…"
@@ -7590,7 +7618,15 @@ function getFilteredScales() {
   return scales
 }
 
+function updateScaleSelCount() {
+  const el = document.getElementById('scale-sel-count')
+  if (!el) return
+  const n = state.study.selectedScales.length
+  el.textContent = `${n} scale${n === 1 ? '' : 's'} selected`
+}
+
 function renderScaleGrid() {
+  updateScaleSelCount()
   const grid = document.getElementById('scale-grid')
   const scales = getFilteredScales()
 
