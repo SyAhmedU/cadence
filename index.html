@@ -448,6 +448,30 @@
     margin-top: 4px;
   }
 
+  /* "Studies using this scale" trigger (styled as the citation links) */
+  .scale-studies-btn {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 600; color: var(--accent);
+    background: none; border: none; padding: 0; margin-top: 4px;
+    cursor: pointer; letter-spacing: 0.02em; font-family: inherit;
+  }
+  .scale-studies-btn:hover { text-decoration: underline; }
+
+  /* Studies modal contents */
+  .studies-body { max-height: 62vh; overflow-y: auto; margin: 4px 0 8px; }
+  .studies-loading, .studies-empty { padding: 22px 6px; color: var(--text-secondary); font-size: 14px; line-height: 1.6; text-align: center; }
+  .studies-meta { font-size: 12px; color: var(--text-tertiary); margin-bottom: 12px; line-height: 1.5; }
+  .study-item {
+    display: block; text-decoration: none; color: inherit;
+    padding: 12px 14px; margin-bottom: 8px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface);
+    transition: border-color .15s, transform .15s;
+  }
+  .study-item:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .study-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.4; }
+  .study-meta { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.45; }
+  .study-link { font-size: 11px; font-weight: 600; color: var(--accent); margin-top: 6px; }
+
   .scale-domain-filter {
     display: flex;
     gap: 8px;
@@ -2193,6 +2217,17 @@ html,body{ overflow-x:clip; }
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeExportModal()">Close</button>
       <button class="btn btn-primary" onclick="exportXLSX()">Download Excel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Studies-using-this-scale modal (live OpenAlex results) -->
+<div class="modal-overlay" id="studies-modal" onclick="if(event.target===this)closeStudiesModal()">
+  <div class="modal" style="max-width:660px;">
+    <div class="modal-title" id="studies-modal-title">Studies using this scale</div>
+    <div id="studies-modal-body" class="studies-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeStudiesModal()">Close</button>
     </div>
   </div>
 </div>
@@ -7661,8 +7696,7 @@ function renderScaleGrid() {
         : s.citation.url
           ? `<a href="${s.citation.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📖 Validation study</a>`
           : `<span class="no-doi">⚠️ No DOI available</span>`
-      const scholarQ = encodeURIComponent(`"${s.name}"`)
-      const find = `<a href="https://scholar.google.com/scholar?q=${scholarQ}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Find published studies that used this scale">🔍 Studies using this scale</a>`
+      const find = `<button type="button" class="scale-studies-btn" onclick="event.stopPropagation(); openStudiesModal(${s.id})" title="See real published studies that used this scale, from OpenAlex">🔍 Studies using this scale</button>`
       citationHtml = `<div class="scale-card-citation">${valid} · ${find}</div>`
     }
     return `<div class="scale-card ${sel ? 'selected' : ''}" onclick="toggleScale(${s.id})">
@@ -8193,6 +8227,83 @@ function joinStudy() {
 function copyParticipantCode() {
   const val = document.getElementById('join-participant-code-display').textContent
   navigator.clipboard.writeText(val).then(() => toast('Participant code copied!'))
+}
+
+// =====================================================================
+//  STUDIES-USING-THIS-SCALE  (live OpenAlex search, real papers + DOIs)
+// =====================================================================
+function _escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+}
+function closeStudiesModal() {
+  document.getElementById('studies-modal').classList.remove('open')
+}
+async function openStudiesModal(scaleId) {
+  const scale = SCALE_LIBRARY.find(s => s.id === scaleId)
+  if (!scale) return
+  document.getElementById('studies-modal-title').textContent = `Studies using the ${scale.abbr}`
+  const body = document.getElementById('studies-modal-body')
+  body.innerHTML = `<div class="studies-loading">Searching <strong>OpenAlex</strong> for published studies that used the <em>${_escHtml(scale.name)}</em>…</div>`
+  document.getElementById('studies-modal').classList.add('open')
+
+  // Credible, citation-based results. Preferred path: resolve the scale's
+  // validation paper (by DOI) to its OpenAlex id, then list the works that
+  // CITE it — i.e. the literature that actually used or built on the scale,
+  // most-cited first. Fallback (no DOI): a title/abstract search (tighter
+  // than a full-text search, so it doesn't surface unrelated blockbusters).
+  // Every row is a real indexed record with a real DOI link — not a redirect.
+  const sel = 'id,doi,title,display_name,publication_year,cited_by_count,authorships,primary_location'
+  const headers = { Accept: 'application/json' }
+  try {
+    let mode = 'search'
+    let data = null
+    const doi = scale.citation && scale.citation.doi
+    if (doi) {
+      const sr = await fetch(`https://api.openalex.org/works/doi:${encodeURIComponent(doi)}?select=id`, { headers })
+      if (sr.ok) {
+        const seed = await sr.json()
+        const m = (seed.id || '').match(/W\d+/)
+        if (m) {
+          const cr = await fetch(`https://api.openalex.org/works?filter=cites:${m[0]}&sort=cited_by_count:desc&per_page=15&select=${sel}`, { headers })
+          if (cr.ok) { data = await cr.json(); mode = 'cites' }
+        }
+      }
+    }
+    if (!data) {
+      const q = encodeURIComponent(`"${scale.name}"`)
+      const r = await fetch(`https://api.openalex.org/works?filter=title_and_abstract.search:${q}&sort=cited_by_count:desc&per_page=15&select=${sel}`, { headers })
+      if (!r.ok) throw new Error('OpenAlex returned ' + r.status)
+      data = await r.json()
+    }
+    const items = (data.results || []).filter(w => w.title || w.display_name)
+    if (!items.length) {
+      body.innerHTML = `<div class="studies-empty">No indexed works found for “${_escHtml(scale.name)}”. The validation study (linked on the card) is the canonical reference.</div>`
+      return
+    }
+    const total = (data.meta && data.meta.count) || items.length
+    const header = mode === 'cites'
+      ? `${total.toLocaleString()} works in OpenAlex cite this scale's validation study — the literature that used or built on it, most-cited first. Each opens its source.`
+      : `${total.toLocaleString()} works mention “${_escHtml(scale.name)}” in their title or abstract, most-cited first. Each opens its source.`
+    const rows = items.map(w => {
+      const title = w.title || w.display_name || 'Untitled'
+      const auth = (w.authorships || []).slice(0, 3).map(a => a.author && a.author.display_name).filter(Boolean).join(', ')
+      const etal = (w.authorships || []).length > 3 ? ' et al.' : ''
+      const year = w.publication_year || ''
+      const venue = (w.primary_location && w.primary_location.source && w.primary_location.source.display_name) || ''
+      const cites = w.cited_by_count || 0
+      const doi = w.doi ? w.doi.replace(/^https?:\/\/(dx\.)?doi\.org\//i, '') : ''
+      const href = doi ? `https://doi.org/${doi}` : (w.id || '#')
+      const meta = [auth + etal, year, venue].filter(Boolean).map(_escHtml).join(' · ')
+      return `<a class="study-item" href="${href}" target="_blank" rel="noopener">
+        <div class="study-title">${_escHtml(title)}</div>
+        <div class="study-meta">${meta} · ${cites.toLocaleString()} citation${cites === 1 ? '' : 's'}</div>
+        <div class="study-link">${doi ? ('DOI: ' + _escHtml(doi)) : 'View on OpenAlex'} ↗</div>
+      </a>`
+    }).join('')
+    body.innerHTML = `<div class="studies-meta">${header}</div>${rows}`
+  } catch (e) {
+    body.innerHTML = `<div class="studies-empty">Couldn't reach OpenAlex (${_escHtml(e.message || e)}). Check your connection and try again — this is a live search, not a saved list.</div>`
+  }
 }
 
 // =====================================================================
