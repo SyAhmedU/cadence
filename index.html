@@ -7650,14 +7650,20 @@ function renderScaleGrid() {
     }
     const indicator = (s.demographic || isMultiDim) ? (sel ? '✓' : '≡') : (sel ? '✓' : '')
     // Build citation block
+    // Validation study (the seminal paper that developed/validated the scale —
+    // a real exemplar of a study using it) + a LIVE literature search for
+    // further studies that used it. The search link is a real query, never a
+    // hand-authored (fabricated) citation.
     let citationHtml = ''
     if (s.citation) {
-      const linkHtml = s.citation.doi
-        ? `<a href="https://doi.org/${s.citation.doi}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 DOI: ${s.citation.doi}</a>`
+      const valid = s.citation.doi
+        ? `<a href="https://doi.org/${s.citation.doi}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📖 Validation study</a>`
         : s.citation.url
-          ? `<a href="${s.citation.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔍 View paper (no DOI)</a>`
+          ? `<a href="${s.citation.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📖 Validation study</a>`
           : `<span class="no-doi">⚠️ No DOI available</span>`
-      citationHtml = `<div class="scale-card-citation">${linkHtml}</div>`
+      const scholarQ = encodeURIComponent(`"${s.name}"`)
+      const find = `<a href="https://scholar.google.com/scholar?q=${scholarQ}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Find published studies that used this scale">🔍 Studies using this scale</a>`
+      citationHtml = `<div class="scale-card-citation">${valid} · ${find}</div>`
     }
     return `<div class="scale-card ${sel ? 'selected' : ''}" onclick="toggleScale(${s.id})">
       <div class="scale-card-check" style="${s.demographic && sel ? 'background:var(--accent);color:#fff;font-size:13px;' : ''}">${indicator}</div>
