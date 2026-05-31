@@ -7762,6 +7762,7 @@ let state = {
     researcher: '',
     maxWaves: 3,
     selectedScales: [],     // array of scale ids from library
+    controlScaleIds: [],    // subset of selectedScales the researcher marks as control variables
     scaleDimensions: {},    // { [scaleId]: ['dim1', 'dim2', ...] } — for any scale with 2+ dimensions
     customQuestions: [],    // array of { text, type, options?, label }
     createdAt: null,
@@ -7956,6 +7957,16 @@ function toggleScale(id) {
   renderScaleGrid()
 }
 
+// Mark / unmark a selected scale as a control variable (covariate). Carried
+// through the study config + each response so ToolsScope flags it downstream.
+function toggleControlScale(id) {
+  if (!state.study.controlScaleIds) state.study.controlScaleIds = []
+  const i = state.study.controlScaleIds.indexOf(id)
+  if (i === -1) state.study.controlScaleIds.push(id)
+  else state.study.controlScaleIds.splice(i, 1)
+  renderReview()
+}
+
 function filterScales(domain, el) {
   state.scaleDomainFilter = domain
   document.querySelectorAll('.domain-pill').forEach(p => p.classList.remove('active'))
@@ -8066,12 +8077,13 @@ function renderReview() {
         <div class="review-stat"><span class="review-stat-val">~${Math.ceil(totalItems * 0.5)} min</span><span class="review-stat-label">Est. Time</span></div>
       </div>
       ${sel.length > 0 ? `
-      <div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Scales Included</div>
+      <div style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Scales Included <span style="font-weight:500; text-transform:none; letter-spacing:0;">· tap ✚ Control to treat a scale as a control variable (covariate)</span></div>
       <div class="review-scale-breakdown">${sel.map(s => {
         const selectedDims = state.study.scaleDimensions[s.id] || null
         const allDimsArr = [...new Set(s.items.map(i => i.dim).filter(Boolean))]
         const isMultiDim = allDimsArr.length >= 2
         const effectiveCount = getEffectiveItemCount(s.id)
+        const isControl = (state.study.controlScaleIds || []).includes(s.id)
         const dimChips = isMultiDim
           ? allDimsArr.map(d => {
               const included = !selectedDims || selectedDims.includes(d)
@@ -8084,6 +8096,8 @@ function renderReview() {
               <span class="review-scale-row-abbr">${s.abbr}</span>
               <span class="review-scale-row-name">${s.name}</span>
               <span class="review-scale-row-count">${effectiveCount} item${effectiveCount !== 1 ? 's' : ''}</span>
+              <button onclick="toggleControlScale(${s.id})" title="Mark as a control variable — carried to ToolsScope as a covariate"
+                style="margin-left:8px;font:inherit;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border,#d0d0d8);border-radius:999px;padding:2px 10px;background:${isControl ? 'var(--accent,#6c5ce7)' : 'transparent'};color:${isControl ? '#fff' : 'var(--text-secondary,#888)'}">${isControl ? '✓ Control' : '✚ Control'}</button>
             </div>
             ${dimChips ? `<div class="review-dim-chips">${dimChips}</div>` : ''}
           </div>`
@@ -8277,6 +8291,7 @@ function publishStudy() {
       consentText: state.study.consentText || '',
       maxWaves: state.study.maxWaves,
       selectedScaleIds: state.study.selectedScales,
+      controlScaleIds: state.study.controlScaleIds,
       scaleDimensions: state.study.scaleDimensions,
       customQuestions: state.study.customQuestions,
       createdAt: state.study.createdAt,
@@ -8645,9 +8660,11 @@ function closeDimPickerOutside(e) {
 function buildQuestionList(cfg) {
   const qs = []
   // Scales first
+  const controlIds = cfg.controlScaleIds || []
   for (const id of (cfg.selectedScaleIds || [])) {
     const scale = SCALE_LIBRARY.find(s => s.id === id)
     if (!scale) continue
+    const isControl = controlIds.includes(id)
     const allowedDims = (cfg.scaleDimensions && cfg.scaleDimensions[id]) || null
     for (const item of scale.items) {
       if (allowedDims && item.dim && !allowedDims.includes(item.dim)) continue
@@ -8664,6 +8681,7 @@ function buildQuestionList(cfg) {
           options: item.options || null,
           placeholder: item.placeholder || null,
           optional: item.optional || false,
+          control: isControl,
         })
       } else {
         qs.push({
@@ -8678,6 +8696,7 @@ function buildQuestionList(cfg) {
           reversed: item.reversed || false,
           likert_points: scale.likert_points,
           likert_labels: scale.likert_labels,
+          control: isControl,
         })
       }
     }
@@ -9016,6 +9035,7 @@ function completeSurvey() {
       text: q.text,
       dim: q.dim || null,
       reversed: q.reversed || false,
+      control: q.control || false,
       answer: state.session.answers[i],
     }))
   }
