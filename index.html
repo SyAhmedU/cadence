@@ -1874,8 +1874,21 @@ html,body{ overflow-x:clip; }
   <div class="landing-hero">Survey research,<br><span>conducted beautifully.</span></div>
   <div class="landing-sub">Design immersive questionnaires. Collect temporal waves. Export clean data — all from a single link.</div>
   <div class="landing-actions">
-    <button class="btn btn-primary" onclick="goTo('builder')">Create a Study</button>
+    <button class="btn btn-primary" onclick="newStudy()">Create a Study</button>
     <button class="btn btn-secondary" onclick="showJoinPrompt()">Join a Study</button>
+    <button class="btn btn-secondary" onclick="openMyStudies()">My Studies</button>
+  </div>
+</div>
+
+<!-- ==================== MY STUDIES (creator dashboard) ==================== -->
+<div class="screen" id="screen-my-studies">
+  <div class="analytics-wrap">
+    <div class="analytics-header">
+      <div class="analytics-title">My Studies</div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('landing')">← Back</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.5;">Studies created on this device, with how many questionnaires have been filled. Open analytics, push the data to ToolsScope, edit the questionnaire, or copy the share link.</div>
+    <div id="my-studies-list"></div>
   </div>
 </div>
 
@@ -8279,9 +8292,12 @@ function publishStudy() {
   if (totalItems === 0) { toast('Add at least one question first.'); return }
 
   try {
-    const studyId = generateCode(6)
+    // Re-use the existing code when editing a study (preserves its responses);
+    // mint a fresh code for a brand-new study.
+    const studyId = (state.study.editingExisting && state.study.id) ? state.study.id : generateCode(6)
     state.study.id = studyId
-    state.study.createdAt = new Date().toISOString()
+    state.study.editingExisting = false
+    state.study.createdAt = state.study.createdAt || new Date().toISOString()
 
     const config = {
       id: studyId,
@@ -9213,6 +9229,108 @@ function _buildScaleMatrix(responses, scaleAbbr) {
     if (row.every(v => v !== null)) matrix.push(row)
   }
   return matrix.length >= 3 ? matrix : null
+}
+
+// =====================================================================
+//  MY STUDIES — creator dashboard (studies created on this device)
+// =====================================================================
+function newStudy() {
+  // Fresh study — clear any edit context so Publish mints a new code.
+  state.study.editingExisting = false
+  goTo('builder')
+}
+function openMyStudies() { renderMyStudies(); goTo('my-studies') }
+
+function _studyResponseCount(id) {
+  try {
+    const arr = JSON.parse(localStorage.getItem(`cadence_responses_${id}`) || '[]')
+    const list = Array.isArray(arr) ? arr : []
+    return { n: list.length, participants: new Set(list.map(r => r && r.participantCode)).size }
+  } catch (_) { return { n: 0, participants: 0 } }
+}
+function _listLocalStudies() {
+  const out = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i)
+    if (!k || k.indexOf('cadence_study_') !== 0) continue
+    try { const cfg = JSON.parse(localStorage.getItem(k)); if (cfg && cfg.id) out.push(cfg) } catch (_) {}
+  }
+  out.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+  return out
+}
+function renderMyStudies() {
+  const wrap = document.getElementById('my-studies-list')
+  if (!wrap) return
+  const studies = _listLocalStudies()
+  if (!studies.length) {
+    wrap.innerHTML = `<div class="analytics-empty">No studies created on this device yet. Tap "Create a Study" — your studies and the responses they collect will appear here.</div>`
+    return
+  }
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+  wrap.innerHTML = studies.map(cfg => {
+    const { n, participants } = _studyResponseCount(cfg.id)
+    const scaleCount = (cfg.selectedScaleIds || []).length
+    const controlCount = (cfg.controlScaleIds || []).length
+    const waves = cfg.maxWaves || 1
+    return `
+      <div style="border:1px solid var(--border,#e2e2ea);border-radius:14px;padding:16px 18px;margin-bottom:12px;background:var(--surface,#fff)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+          <div>
+            <div style="font-weight:700;font-size:16px;letter-spacing:-.01em">${esc(cfg.name) || 'Untitled study'}</div>
+            <div style="font-size:12px;color:var(--text-secondary,#6F6F7E);margin-top:3px">Code <b>${esc(cfg.id)}</b> · ${scaleCount} scale${scaleCount === 1 ? '' : 's'}${controlCount ? ` · ${controlCount} control` : ''} · ${waves} wave${waves === 1 ? '' : 's'}</div>
+          </div>
+          <div style="text-align:right;line-height:1.1">
+            <div style="font-size:24px;font-weight:800;color:var(--accent,#6c5ce7)">${n}</div>
+            <div style="font-size:11px;color:var(--text-secondary,#6F6F7E)">filled · ${participants} participant${participants === 1 ? '' : 's'}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <button class="btn btn-ghost btn-sm" onclick="studyAnalytics('${esc(cfg.id)}')">📊 Analytics</button>
+          <button class="btn btn-ghost btn-sm" onclick="studyToolsScope('${esc(cfg.id)}')">📈 ToolsScope</button>
+          <button class="btn btn-ghost btn-sm" onclick="editStudy('${esc(cfg.id)}')">✏️ Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="copyStudyLink('${esc(cfg.id)}')">🔗 Copy link</button>
+        </div>
+      </div>`
+  }).join('')
+}
+function loadStudyConfig(id) {
+  const raw = localStorage.getItem(`cadence_study_${id}`)
+  if (!raw) { toast('Study not found on this device.'); return null }
+  const cfg = JSON.parse(raw)
+  state.study.id = cfg.id
+  state.study.name = cfg.name || ''
+  state.study.desc = cfg.desc || ''
+  state.study.researcher = cfg.researcher || ''
+  state.study.consentText = cfg.consentText || ''
+  state.study.maxWaves = cfg.maxWaves || 3
+  state.study.selectedScales = (cfg.selectedScaleIds || []).slice()
+  state.study.controlScaleIds = (cfg.controlScaleIds || []).slice()
+  state.study.scaleDimensions = cfg.scaleDimensions || {}
+  state.study.customQuestions = (cfg.customQuestions || []).slice()
+  state.study.createdAt = cfg.createdAt || null
+  return cfg
+}
+function studyAnalytics(id) { if (loadStudyConfig(id)) openAnalytics() }
+function studyToolsScope(id) { if (loadStudyConfig(id)) openInToolsScope() }
+function editStudy(id) {
+  const cfg = loadStudyConfig(id)
+  if (!cfg) return
+  state.study.editingExisting = true   // re-publishing updates this study in place (same code + responses)
+  const set = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v }
+  set('study-name', cfg.name || '')
+  set('study-desc', cfg.desc || '')
+  set('study-researcher', cfg.researcher || '')
+  set('study-waves', String(cfg.maxWaves || 3))
+  goTo('builder')
+  if (typeof renderScaleGrid === 'function') renderScaleGrid()
+  toast('Editing — change anything, then re-publish (keeps the same study code & responses).')
+}
+function copyStudyLink(id) {
+  const raw = localStorage.getItem(`cadence_study_${id}`)
+  if (!raw) { toast('Study not found.'); return }
+  const url = `${location.origin}${location.pathname}#${_cadB64Enc(raw)}`
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('Study link copied'), () => toast('Copy failed — link: ' + url))
+  else toast(url)
 }
 
 // =====================================================================
