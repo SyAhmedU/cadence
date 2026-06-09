@@ -9906,6 +9906,14 @@ document.addEventListener('keydown', e => {
   const screen = document.querySelector('.screen.active')?.id
   if (screen !== 'screen-survey') return
 
+  // Don't hijack keys while the participant is typing a free-text / number
+  // answer — Enter should insert a newline and arrows should move the caret,
+  // not jump between questions or trigger Likert selection.
+  const t = e.target
+  if (t && (t.tagName === 'TEXTAREA' ||
+            (t.tagName === 'INPUT' && !['radio','checkbox','button','submit','range'].includes(t.type)) ||
+            t.isContentEditable)) return
+
   const q = state.session.questions[state.session.currentQ]
   if (!q) return
 
