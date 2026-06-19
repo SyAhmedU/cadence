@@ -1840,6 +1840,14 @@ html,body{ overflow-x:clip; }
   button, .btn, [role="button"]{ min-height:46px; }
 }
 </style>
+<!-- SYED-PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cadence">
+<!-- /SYED-PWA -->
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to content</a>
@@ -10369,5 +10377,8 @@ var s=document.createElement('style');s.id='syed-juice';s.textContent=css;docume
 })();
 </script>
 <!-- /SYED-TOUR -->
+<!-- SYED-PWA-SW -->
+<script>if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
+<!-- /SYED-PWA-SW -->
 </body>
 </html>
