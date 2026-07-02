@@ -2168,6 +2168,9 @@ html,body{ overflow-x:clip; }
     <div class="nav-hint-item"><span class="key-badge">1–7</span> Select</div>
     <div class="nav-hint-item"><span class="key-badge">↵</span> Next</div>
     <div class="nav-hint-item"><span class="key-badge">←</span> Back</div>
+    <button type="button" onclick="copyResumeLink()" title="Copy a private link that reopens this survey exactly where you left off — on any device" style="font:inherit;font-size:12px;color:var(--text-secondary);background:none;border:1px solid var(--border,#d0d0d8);border-radius:999px;padding:5px 12px;cursor:pointer">🔗 Resume link</button>
+    <button type="button" onclick="cadFontScale(-1)" title="Smaller text" aria-label="Smaller text" style="font:inherit;font-size:12px;color:var(--text-secondary);background:none;border:1px solid var(--border,#d0d0d8);border-radius:999px;padding:5px 10px;cursor:pointer">A−</button>
+    <button type="button" onclick="cadFontScale(1)" title="Larger text" aria-label="Larger text" style="font:inherit;font-size:14px;color:var(--text-secondary);background:none;border:1px solid var(--border,#d0d0d8);border-radius:999px;padding:5px 10px;cursor:pointer">A+</button>
     <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>Next <span style="font-size:16px;">→</span></button>
   </div>
 </div>
@@ -2188,6 +2191,7 @@ html,body{ overflow-x:clip; }
   <div class="wave-continue" id="wave-continue-note"></div>
   <div class="complete-actions">
     <button class="btn btn-secondary" onclick="downloadMyData()">Download My Data (JSON)</button>
+    <button class="btn btn-secondary" onclick="downloadConsentReceipt()">🧾 Consent Receipt</button>
     <button class="btn btn-primary" onclick="goTo('landing')">Done</button>
   </div>
   <div class="complete-purge">
@@ -2214,6 +2218,7 @@ html,body{ overflow-x:clip; }
         <option value="open">Open Text</option>
         <option value="number">Number / Age / Year</option>
         <option value="choice">Multiple Choice</option>
+        <option value="attention">Attention check (1–5, labelled)</option>
       </select>
     </div>
     <div id="new-q-extra"></div>
@@ -8345,6 +8350,20 @@ function onQTypeChange() {
       <label>Scale Label (optional)</label>
       <input type="text" id="custom-q-label" placeholder="e.g. Agreement, Frequency...">
     </div>`
+  } else if (type === 'attention') {
+    extra.innerHTML = `<div class="field">
+      <label>Expected answer</label>
+      <select id="attention-expected">
+        <option value="1">1 — Strongly Disagree</option>
+        <option value="2">2 — Disagree</option>
+        <option value="3">3 — Neutral</option>
+        <option value="4" selected>4 — Agree</option>
+        <option value="5">5 — Strongly Agree</option>
+      </select>
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.5">Shown to participants labelled as a quality check (transparent, not a trap). Exports carry an <b>attention_pass</b> column; analytics counts fails as a heuristic flag — review, never auto-drop.</div>
+    </div>`
+    const txt = document.getElementById('new-q-text')
+    if (txt && !txt.value.trim()) txt.value = 'To show you are reading carefully, please select "Agree" for this item.'
   } else {
     extra.innerHTML = ''
   }
@@ -8362,6 +8381,9 @@ function addCustomQ() {
   }
   if (type === 'likert5' || type === 'likert7') {
     q.label = document.getElementById('custom-q-label')?.value.trim() || ''
+  }
+  if (type === 'attention') {
+    q.expected = parseInt(document.getElementById('attention-expected')?.value || '4', 10)
   }
   state.study.customQuestions.push(q)
   closeAddQModal()
@@ -9080,7 +9102,9 @@ function renderQuestion(idx) {
 
   document.getElementById('progress-fill').style.width = `${pct}%`
   document.getElementById('progress-label').textContent = `${pct}%`
-  document.getElementById('q-counter').textContent = `${idx + 1} / ${n}`
+  // honest time-left: same ~0.5 min/question heuristic the intro screen states
+  const minsLeft = Math.max(1, Math.ceil((n - idx) * 0.5))
+  document.getElementById('q-counter').textContent = `${idx + 1} / ${n} · ~${minsLeft} min left`
 
   const wrap = document.getElementById('q-wrap')
   wrap.style.animation = 'none'
@@ -9099,8 +9123,13 @@ function renderQuestion(idx) {
     labelEl.textContent = `SDQ — Sociodemographic${q.dim ? ' · ' + q.dim : ''}${q.optional ? ' · Optional' : ''}`
     textEl.textContent = q.text
     inputEl.innerHTML = renderDemographic(idx, q)
-  } else if (q.type === 'custom') {
-    labelEl.textContent = 'Your Response'
+  } else {
+    // Custom questions: buildQuestionList spreads the question AFTER the
+    // 'custom' tag, so q.type is the concrete input type (likert5/likert7/
+    // open/number/choice/attention) — renderCustomInput switches on it.
+    // (The old `q.type === 'custom'` check here never matched, leaving custom
+    // questions with no input at all — fixed 2026-07-02.)
+    labelEl.textContent = q.type === 'attention' ? 'Quality check — please read carefully' : 'Your Response'
     textEl.textContent = q.text
     inputEl.innerHTML = renderCustomInput(idx, q)
   }
@@ -9174,6 +9203,12 @@ function toggleMultiCheck(idx, val, el) {
 
 function renderCustomInput(idx, q) {
   const val = state.session.answers[idx]
+  if (q.type === 'attention') {
+    // attention checks render exactly like a 5-point likert — the label above
+    // already tells the participant it's a quality check (transparent, not a trap)
+    const labels = ['Strongly Disagree','Disagree','Neutral','Agree','Strongly Agree']
+    return renderLikert(idx, { likert_points: 5, likert_labels: labels })
+  }
   if (q.type === 'likert5' || q.type === 'likert7') {
     const pts = q.type === 'likert7' ? 7 : 5
     const labels = pts === 7
@@ -9336,6 +9371,77 @@ function clearProgress() {
   if (key) { try { localStorage.removeItem(key) } catch (e) {} }
 }
 
+// ── Save-and-resume LINK (cross-device) ─────────────────────────────
+// The study config already travels in the URL hash; a resume link adds the
+// participant's own progress as a ?cadres= payload so they can continue on
+// another device. Private by construction: the link only exists if they copy it.
+function copyResumeLink() {
+  const s = state.session
+  if (!s || !s.studyConfig) return
+  const payload = {
+    pc: s.participantCode, waveNum: s.waveNum, currentQ: s.currentQ,
+    answers: s.answers, milestoneShown: s.milestoneShown,
+    startedAt: s.startedAt, consentedAt: s.consentedAt || null,
+  }
+  const cfgB64 = _cadB64Enc(JSON.stringify(s.studyConfig))
+  const url = `${location.origin}${location.pathname}?cadres=${_packB64(JSON.stringify(payload))}#${cfgB64}`
+  if (url.length > 7500) { toast('This survey is too large for a resume link — your progress is saved on this device instead.'); return }
+  navigator.clipboard.writeText(url).then(
+    () => toast('Resume link copied — open it on any device to continue where you left off.'),
+    () => prompt('Copy this resume link:', url)
+  )
+}
+
+// Receiver: a ?cadres= link restores the participant's progress into local
+// storage, then walks them through the normal join flow (consent state and
+// the resume prompt are the same code paths — nothing bypassed).
+function _checkResumeLink() {
+  try {
+    const params = new URLSearchParams(location.search)
+    const raw = params.get('cadres')
+    if (!raw) return false
+    const b64 = raw.replace(/-/g, '+').replace(/_/g, '/')
+    const bin = atob(b64 + '='.repeat((4 - b64.length % 4) % 4))
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    const prog = JSON.parse(new TextDecoder().decode(bytes))
+    const hash = location.hash.slice(1)
+    if (!hash || !prog || !prog.pc) return false
+    const cfg = JSON.parse(_cadB64Dec(hash))
+    if (!cfg || !cfg.id) return false
+    // restore progress + last participant code, then strip the param
+    localStorage.setItem(`cadence_progress_${cfg.id}_${prog.pc}`, JSON.stringify({
+      waveNum: prog.waveNum, currentQ: prog.currentQ, answers: prog.answers,
+      milestoneShown: prog.milestoneShown, startedAt: prog.startedAt,
+      consentedAt: prog.consentedAt, ts: Date.now(),
+    }))
+    localStorage.setItem(`cadence_lastpc_${cfg.id}`, prog.pc)
+    history.replaceState(null, '', location.pathname + location.hash)
+    // hand off to the normal join flow with everything prefilled
+    showJoinPrompt()
+    const codeEl = document.getElementById('join-study-code')
+    const pcEl = document.getElementById('join-participant-code')
+    if (codeEl) codeEl.value = cfg.id
+    if (pcEl) pcEl.value = prog.pc
+    joinStudy()
+    return true
+  } catch (e) { return false }
+}
+
+// ── Participant font-size toggle (accessibility) ────────────────────
+function cadFontScale(dir) {
+  let cur = 0
+  try { cur = parseInt(localStorage.getItem('cadence_fontscale') || '0', 10) || 0 } catch (e) {}
+  cur = Math.max(0, Math.min(2, cur + dir))
+  try { localStorage.setItem('cadence_fontscale', String(cur)) } catch (e) {}
+  _applyFontScale(cur)
+}
+function _applyFontScale(cur) {
+  const el = document.getElementById('screen-survey')
+  if (el) el.style.zoom = ['1', '1.15', '1.3'][cur] || '1'
+}
+try { _applyFontScale(parseInt(localStorage.getItem('cadence_fontscale') || '0', 10) || 0) } catch (e) {}
+
 function completeSurvey() {
   const cfg = state.session.studyConfig
   const pc = state.session.participantCode
@@ -9357,6 +9463,8 @@ function completeSurvey() {
       dim: q.dim || null,
       reversed: q.reversed || false,
       control: q.control || false,
+      attention: q.type === 'attention' || false,
+      expected: q.type === 'attention' ? (q.expected ?? 4) : null,
       answer: state.session.answers[i],
     }))
   }
@@ -9399,6 +9507,37 @@ function downloadMyData() {
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
   a.download = `cadence_${cfg.id}_${pc}.json`
+  a.click()
+}
+
+// Consent receipt: a plain-text copy of exactly what the participant agreed
+// to, when, and under which code — theirs to keep.
+function downloadConsentReceipt() {
+  const cfg = state.session.studyConfig
+  const pc = state.session.participantCode
+  if (!cfg) return
+  const lines = [
+    'CONSENT RECEIPT — Cadence survey',
+    '================================',
+    '',
+    `Study: ${cfg.name || ''} (code ${cfg.id})`,
+    cfg.researcher ? `Researcher: ${cfg.researcher}` : null,
+    `Participant code: ${pc}`,
+    `Consent given: ${state.session.consentedAt || '(recorded at survey start)'}`,
+    `Wave completed: ${state.session.waveNum} of ${cfg.maxWaves}`,
+    `Receipt generated: ${new Date().toISOString()}`,
+    '',
+    'The consent statement you agreed to:',
+    '------------------------------------',
+    (cfg.consentText && cfg.consentText.trim()) ? cfg.consentText : DEFAULT_CONSENT_TEXT,
+    '',
+    'You may withdraw at any time. On the completion screen, "Delete my responses',
+    'from this device" removes everything you submitted from this browser.',
+  ].filter(l => l !== null)
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `consent-receipt_${cfg.id}_${pc}.txt`
   a.click()
 }
 
@@ -9784,12 +9923,105 @@ function openAnalytics() {
         </div>
       `
     }).join('')
+    // — Per-item distributions (inside each scale, on demand) ————
+    const itemBuckets = {}
+    for (const r of responses) for (const q of r.questions || []) {
+      if (typeof q.answer !== 'number' || q.answer < 1 || q.answer > 7) continue
+      const abbr = q.scaleAbbr || 'Custom'
+      if (!itemBuckets[abbr]) itemBuckets[abbr] = {}
+      if (!itemBuckets[abbr][q.text]) itemBuckets[abbr][q.text] = [0,0,0,0,0,0,0]
+      itemBuckets[abbr][q.text][q.answer - 1]++
+    }
+    const itemDetails = scaleKeys.filter(abbr => itemBuckets[abbr]).map(abbr => {
+      const items = Object.entries(itemBuckets[abbr])
+      const rowsHtml = items.map(([text, counts]) => {
+        const total = counts.reduce((a,b)=>a+b,0)
+        const segs = counts.map((c,i) => { const w = total?Math.round(c/total*100):0; return w>0?`<div class="analytics-dist-seg" style="width:${w}%;background:${DIST_COLORS[i]}" title="${i+1}: ${c}"></div>`:'' }).join('')
+        return `<div class="analytics-dist-row"><div class="analytics-dist-label" title="${text.replace(/"/g,'&quot;')}" style="max-width:220px;">${text.length>42?text.slice(0,40)+'…':text}</div><div class="analytics-dist-bar">${segs}</div><div class="analytics-dist-n">${total}</div></div>`
+      }).join('')
+      return `<details style="margin-top:6px;"><summary style="cursor:pointer;font-size:12px;color:var(--text-secondary);font-weight:600;">${abbr} — item by item (${items.length})</summary><div style="margin-top:8px;">${rowsHtml}</div></details>`
+    }).join('')
+
+    // — Data-quality flags (heuristic, review-don't-drop) —————
+    const flags = { straight: [], speed: [], attn: [] }
+    for (const r of responses) {
+      const tag = `${r.participantCode} · w${r.waveNum}`
+      const likertVals = (r.questions || []).filter(q => !q.attention && typeof q.answer === 'number' && q.answer >= 1 && q.answer <= 7).map(q => q.answer)
+      if (likertVals.length >= 8 && likertVals.every(v => v === likertVals[0])) flags.straight.push(tag)
+      const ms = r.completedAt && r.startedAt ? new Date(r.completedAt) - new Date(r.startedAt) : null
+      if (ms !== null && ms > 0 && likertVals.length >= 5 && ms < likertVals.length * 1500) flags.speed.push(tag)
+      if ((r.questions || []).some(q => q.attention && q.expected != null && typeof q.answer === 'number' && q.answer !== q.expected)) flags.attn.push(tag)
+    }
+    const flagRow = (label, arr, tip) => `<div class="analytics-wave-row"><div class="analytics-wave-label" style="width:auto;min-width:150px;" title="${tip}">${label}</div><div style="flex:1;font-size:12px;color:var(--text-secondary);">${arr.length ? arr.slice(0,8).join(', ') + (arr.length>8?` +${arr.length-8} more`:'') : 'none'}</div><div class="analytics-wave-count">${arr.length}</div></div>`
+    const qualityHtml = `
+      <div class="analytics-section-title" style="margin-top:18px;">Data-quality flags <span style="font-weight:500;font-size:11px;color:var(--text-tertiary);text-transform:none;letter-spacing:0;">· heuristic — review flagged rows, never auto-drop</span></div>
+      ${flagRow('▬ Straight-lining', flags.straight, '8+ identical consecutive-scale answers in one submission')}
+      ${flagRow('⚡ Speeding', flags.speed, 'finished faster than ~1.5s per scale item')}
+      ${flagRow('🎯 Failed attention check', flags.attn, 'answered an attention-check item differently from its stated expected answer')}
+    `
+
+    // — Completion funnel: per-item non-response, among submitted responses —
+    const nQ = Math.max(...responses.map(r => (r.questions || []).length), 0)
+    let funnelHtml = ''
+    if (nQ > 0) {
+      const answered = new Array(nQ).fill(0)
+      for (const r of responses) (r.questions || []).forEach((q, i) => { if (q.answer !== undefined && q.answer !== null && q.answer !== '') answered[i]++ })
+      const bars = answered.map((a, i) => {
+        const hPct = Math.round(a / responses.length * 100)
+        return `<div title="Item ${i+1}: answered by ${a}/${responses.length}" style="flex:1;min-width:2px;background:${hPct===100?'var(--accent,#6c5ce7)':'#f97316'};opacity:${0.35+0.65*hPct/100};height:${Math.max(4, hPct*0.4)}px;border-radius:2px 2px 0 0;"></div>`
+      }).join('')
+      funnelHtml = `
+        <div class="analytics-section-title" style="margin-top:18px;">Item completion <span style="font-weight:500;font-size:11px;color:var(--text-tertiary);text-transform:none;letter-spacing:0;">· among submitted responses only — true dropouts never reach this device</span></div>
+        <div style="display:flex;align-items:flex-end;gap:1px;height:44px;">${bars}</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);margin-top:2px;"><span>Item 1</span><span>Item ${nQ}</span></div>
+      `
+    }
+
+    // — Wave-over-wave deltas (measured means only) ————————————
+    let deltaHtml = ''
+    if (maxWave >= 2) {
+      const byWave = {}
+      for (const r of responses) for (const q of r.questions || []) {
+        if (typeof q.answer !== 'number' || q.answer < 1 || q.answer > 7) continue
+        const abbr = q.scaleAbbr || 'Custom'
+        const val = q.reversed ? (8 - q.answer) : q.answer
+        ;((byWave[abbr] = byWave[abbr] || {})[r.waveNum] = byWave[abbr][r.waveNum] || []).push(val)
+      }
+      const waveNums = [...new Set(responses.map(r => r.waveNum))].sort((a,b)=>a-b)
+      const deltaRows = scaleKeys.filter(a => byWave[a]).map(abbr => {
+        const cells = waveNums.map((w, wi) => {
+          const vals = byWave[abbr][w]
+          if (!vals || !vals.length) return '<td style="color:var(--text-tertiary)">—</td>'
+          const m = vals.reduce((s,v)=>s+v,0)/vals.length
+          let delta = ''
+          if (wi > 0) {
+            const prev = byWave[abbr][waveNums[wi-1]]
+            if (prev && prev.length) {
+              const pm = prev.reduce((s,v)=>s+v,0)/prev.length
+              const d = m - pm
+              delta = ` <span style="font-size:10px;color:${d>=0?'#22c55e':'#ef4444'}">${d>=0?'▲':'▼'}${Math.abs(d).toFixed(2)}</span>`
+            }
+          }
+          return `<td>${m.toFixed(2)}${delta}</td>`
+        }).join('')
+        return `<tr><td><span class="analytics-scale-abbr">${abbr}</span></td>${cells}</tr>`
+      }).join('')
+      deltaHtml = `
+        <div class="analytics-section-title" style="margin-top:18px;">Wave-over-wave means</div>
+        <table class="analytics-scale-table"><thead><tr><th>Scale</th>${waveNums.map(w=>`<th>Wave ${w}</th>`).join('')}</tr></thead><tbody>${deltaRows}</tbody></table>
+      `
+    }
+
     distEl.innerHTML = `
       <div class="analytics-section-title" style="margin-top:18px;">Response Distribution (1–7)</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
         ${DIST_COLORS.map((c,i) => `<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-secondary)"><span style="width:10px;height:10px;border-radius:3px;background:${c};display:inline-block"></span>${i+1}</span>`).join('')}
       </div>
       <div class="analytics-dist-section">${distRows}</div>
+      ${itemDetails}
+      ${qualityHtml}
+      ${funnelHtml}
+      ${deltaHtml}
     `
   }
 
@@ -9885,9 +10117,35 @@ function openExportModal() {
       if (!byParticipant[r.participantCode]) byParticipant[r.participantCode] = []
       byParticipant[r.participantCode].push(r)
     }
-    content.innerHTML = `
+    // — Pre-flight report: what you're about to export, honestly summarised —
+    const cfg = state.study && state.study.id === studyId ? state.study : (JSON.parse(localStorage.getItem(`cadence_study_${studyId}`) || 'null') || {})
+    const waveCounts = {}
+    let totalCells = 0, missingCells = 0
+    for (const r of responses) {
+      waveCounts[r.waveNum] = (waveCounts[r.waveNum] || 0) + 1
+      for (const q of r.questions || []) {
+        totalCells++
+        if (q.answer === undefined || q.answer === null || q.answer === '') missingCells++
+      }
+    }
+    const missingPct = totalCells ? (missingCells / totalCells * 100).toFixed(1) : '0.0'
+    const maxWaves = cfg.maxWaves || Math.max(...responses.map(r => r.waveNum), 1)
+    const fullCompleters = Object.values(byParticipant).filter(rs => rs.length >= maxWaves).length
+    const nP = Object.keys(byParticipant).length
+    const preflight = `
       <div class="export-section">
-        <div class="export-section-title">Responses (${responses.length} wave submissions from ${Object.keys(byParticipant).length} participants)</div>
+        <div class="export-section-title">Pre-flight report</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:10px;">
+          <div style="background:var(--bg-secondary,#f6f6f9);border-radius:10px;padding:10px;"><div style="font-size:20px;font-weight:800;">${responses.length}</div><div style="font-size:11px;color:var(--text-secondary)">submissions</div></div>
+          <div style="background:var(--bg-secondary,#f6f6f9);border-radius:10px;padding:10px;"><div style="font-size:20px;font-weight:800;">${nP}</div><div style="font-size:11px;color:var(--text-secondary)">participants</div></div>
+          <div style="background:var(--bg-secondary,#f6f6f9);border-radius:10px;padding:10px;"><div style="font-size:20px;font-weight:800;">${maxWaves > 1 ? Math.round(fullCompleters / Math.max(1,nP) * 100) + '%' : '100%'}</div><div style="font-size:11px;color:var(--text-secondary)">completed all ${maxWaves} wave${maxWaves>1?'s':''}</div></div>
+          <div style="background:var(--bg-secondary,#f6f6f9);border-radius:10px;padding:10px;"><div style="font-size:20px;font-weight:800;">${missingPct}%</div><div style="font-size:11px;color:var(--text-secondary)">missing answers</div></div>
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary);">Per wave: ${Object.keys(waveCounts).sort((a,b)=>+a-+b).map(w=>`W${w}: ${waveCounts[w]}`).join(' · ')}</div>
+      </div>`
+    content.innerHTML = preflight + `
+      <div class="export-section">
+        <div class="export-section-title">Responses (${responses.length} wave submissions from ${nP} participants)</div>
         <div class="export-list">${Object.entries(byParticipant).map(([pc, rs]) => `
           <div class="export-participant-row">
             <span class="export-code">${pc}</span>
@@ -9896,7 +10154,7 @@ function openExportModal() {
           </div>`).join('')}
         </div>
       </div>
-      <div style="font-size:13px; color:var(--text-secondary); line-height:1.5;">The Excel file will contain 3 sheets: Raw Responses, Scale Means, and Wave Log.</div>
+      <div style="font-size:13px; color:var(--text-secondary); line-height:1.5;">The Excel file will contain 3 sheets: Raw Responses, Scale Means, and Wave Log. Attention-check items are labelled with an <b>attention_pass</b> column — transparent in the data, never silently dropped.</div>
     `
   }
   document.getElementById('export-modal').classList.add('open')
@@ -9918,10 +10176,11 @@ function exportXLSX() {
   // Sheet 1: Raw responses
   const rawRows = []
   const header = ['Participant Code', 'Wave', 'Completed At', 'Duration (min)']
-  // Build all question columns
+  // Build all question columns — attention checks are labelled transparently
   const firstResp = responses[0]
-  const qCols = firstResp.questions.map((q, i) => `Q${i+1}: ${q.text.slice(0, 40)}`)
-  const fullHeader = [...header, ...qCols]
+  const hasAttention = firstResp.questions.some(q => q.attention)
+  const qCols = firstResp.questions.map((q, i) => `${q.attention ? '[attention check] ' : ''}Q${i+1}: ${q.text.slice(0, 40)}`)
+  const fullHeader = [...header, ...qCols, ...(hasAttention ? ['attention_pass'] : [])]
   rawRows.push(fullHeader)
 
   for (const r of responses) {
@@ -9929,6 +10188,10 @@ function exportXLSX() {
     const row = [r.participantCode, r.waveNum, r.completedAt, dur]
     for (let i = 0; i < r.questions.length; i++) {
       row.push(r.answers[i] ?? '')
+    }
+    if (hasAttention) {
+      const checks = r.questions.filter(q => q.attention && q.expected != null)
+      row.push(checks.length ? (checks.every(q => q.answer === q.expected) ? 'pass' : 'fail') : '')
     }
     rawRows.push(row)
   }
@@ -10031,6 +10294,10 @@ function toast(msg) {
 // through to the legacy unprefixed study-link parser when it doesn't match.
 window.addEventListener('load', () => {
   const rawHash = location.hash.slice(1)
+
+  // Cross-device resume link (?cadres=…#<study>) — restores progress, then
+  // walks the normal join flow. Handled first: it carries its own study hash.
+  if (_checkResumeLink()) return
 
   // ResearchFlow handoff: prefill the builder with the planned study.
   const packMatch = rawHash.match(/^pack=([^&]+)/)
