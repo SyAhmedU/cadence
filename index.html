@@ -2069,6 +2069,7 @@ html,body{ overflow-x:clip; }
         <input type="file" id="analytics-import-input" accept=".json" multiple style="display:none" onchange="importParticipantResponses(event)">
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('analytics-import-input').click()" title="Merge participant-exported JSON files">📥 Import</button>
         <button class="btn btn-ghost btn-sm" onclick="openInToolsScope()" title="Open this study's responses in ToolsScope for analysis (composites, t-tests, ANOVA, etc.)">📈 Open in ToolsScope</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCodebook()" title="CSV codebook: variable, verbatim item text, scale, anchors, reverse flags, citation — what makes the data analyzable anywhere">📖 Codebook</button>
         <button class="btn btn-ghost btn-sm" onclick="goTo('study-done')">← Back</button>
       </div>
     </div>
@@ -9587,6 +9588,29 @@ function _packB64(str) {
   return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
+// Per-response quality flags — the same deterministic heuristics the
+// analytics screen shows, computed once so collection-side screening travels
+// WITH the data into analysis. Heuristics, never auto-exclusions.
+function _responseQualityFlags(r) {
+  const likertVals = (r.questions || []).filter(q => !q.attention && typeof q.answer === 'number' && q.answer >= 1 && q.answer <= 7).map(q => q.answer)
+  const straight = likertVals.length >= 8 && likertVals.every(v => v === likertVals[0])
+  const ms = r.completedAt && r.startedAt ? new Date(r.completedAt) - new Date(r.startedAt) : null
+  const speeder = ms !== null && ms > 0 && likertVals.length >= 5 && ms < likertVals.length * 1500
+  const failedAttention = (r.questions || []).some(q => q.attention && q.expected != null && typeof q.answer === 'number' && q.answer !== q.expected)
+  // Reverse-coherence: an attentive respondent's reversed items should sit
+  // OPPOSITE their normal items; both extreme in the same direction is the
+  // cheapest attention signal that needs no extra items.
+  const revRaw = (r.questions || []).filter(q => q.reversed && typeof q.answer === 'number').map(q => q.answer)
+  const fwdRaw = (r.questions || []).filter(q => !q.reversed && !q.attention && typeof q.answer === 'number').map(q => q.answer)
+  let reverseIncoherent = false
+  if (revRaw.length >= 2 && fwdRaw.length >= 2) {
+    const rm = revRaw.reduce((s,v)=>s+v,0)/revRaw.length
+    const fm = fwdRaw.reduce((s,v)=>s+v,0)/fwdRaw.length
+    reverseIncoherent = (rm >= 5.5 && fm >= 5.5) || (rm <= 2.5 && fm <= 2.5)
+  }
+  return { straight, speeder, failedAttention, reverseIncoherent }
+}
+
 function openInToolsScope() {
   const studyId = state.study.id || document.getElementById('study-code-display').textContent
   const studyResponseKey = `cadence_responses_${studyId}`
@@ -9596,7 +9620,14 @@ function openInToolsScope() {
     return
   }
   const base = 'https://toolsscope.vercel.app/'
-  const json = JSON.stringify(responses)
+  // Quality flags ride along per respondent so ToolsScope can materialise a
+  // flag_quality column — closing the collection → analysis feedback loop.
+  const flagged = responses.map(r => {
+    const f = _responseQualityFlags(r)
+    const any = f.straight || f.speeder || f.failedAttention || f.reverseIncoherent
+    return { ...r, _quality: { ...f, flagged: any, note: 'heuristic screening — human decision required, never auto-exclude' } }
+  })
+  const json = JSON.stringify(flagged)
 
   // If this study was bootstrapped from a ResearchFlow pack, forward the pack
   // alongside the data so ToolsScope still highlights the planned tests on
@@ -9943,22 +9974,48 @@ function openAnalytics() {
     }).join('')
 
     // — Data-quality flags (heuristic, review-don't-drop) —————
-    const flags = { straight: [], speed: [], attn: [] }
+    // Same computation that rides into the ToolsScope payload (_responseQualityFlags).
+    const flags = { straight: [], speed: [], attn: [], revinc: [] }
     for (const r of responses) {
       const tag = `${r.participantCode} · w${r.waveNum}`
-      const likertVals = (r.questions || []).filter(q => !q.attention && typeof q.answer === 'number' && q.answer >= 1 && q.answer <= 7).map(q => q.answer)
-      if (likertVals.length >= 8 && likertVals.every(v => v === likertVals[0])) flags.straight.push(tag)
-      const ms = r.completedAt && r.startedAt ? new Date(r.completedAt) - new Date(r.startedAt) : null
-      if (ms !== null && ms > 0 && likertVals.length >= 5 && ms < likertVals.length * 1500) flags.speed.push(tag)
-      if ((r.questions || []).some(q => q.attention && q.expected != null && typeof q.answer === 'number' && q.answer !== q.expected)) flags.attn.push(tag)
+      const f = _responseQualityFlags(r)
+      if (f.straight) flags.straight.push(tag)
+      if (f.speeder) flags.speed.push(tag)
+      if (f.failedAttention) flags.attn.push(tag)
+      if (f.reverseIncoherent) flags.revinc.push(tag)
     }
     const flagRow = (label, arr, tip) => `<div class="analytics-wave-row"><div class="analytics-wave-label" style="width:auto;min-width:150px;" title="${tip}">${label}</div><div style="flex:1;font-size:12px;color:var(--text-secondary);">${arr.length ? arr.slice(0,8).join(', ') + (arr.length>8?` +${arr.length-8} more`:'') : 'none'}</div><div class="analytics-wave-count">${arr.length}</div></div>`
     const qualityHtml = `
-      <div class="analytics-section-title" style="margin-top:18px;">Data-quality flags <span style="font-weight:500;font-size:11px;color:var(--text-tertiary);text-transform:none;letter-spacing:0;">· heuristic — review flagged rows, never auto-drop</span></div>
+      <div class="analytics-section-title" style="margin-top:18px;">Data-quality flags <span style="font-weight:500;font-size:11px;color:var(--text-tertiary);text-transform:none;letter-spacing:0;">· heuristic — review flagged rows, never auto-drop · these travel into the ToolsScope hand-off as a _quality field</span></div>
       ${flagRow('▬ Straight-lining', flags.straight, '8+ identical consecutive-scale answers in one submission')}
       ${flagRow('⚡ Speeding', flags.speed, 'finished faster than ~1.5s per scale item')}
       ${flagRow('🎯 Failed attention check', flags.attn, 'answered an attention-check item differently from its stated expected answer')}
+      ${flagRow('↔ Reversed items agree with normal items', flags.revinc, 'reversed and normal items both extreme in the SAME direction — usually means the reversals were not read')}
     `
+
+    // — Completion-time distribution (bimodal = careful readers vs speeders) —
+    let timeHtml = ''
+    const durs = responses
+      .map(r => r.completedAt && r.startedAt ? (new Date(r.completedAt) - new Date(r.startedAt)) / 60000 : null)
+      .filter(v => v !== null && v > 0 && v < 180)
+    if (durs.length >= 5) {
+      const sorted = durs.slice().sort((a,b)=>a-b)
+      const median = sorted[Math.floor(sorted.length/2)]
+      const maxD = Math.min(Math.max(...durs), median * 4 || 30)
+      const BINS = 12
+      const counts = new Array(BINS).fill(0)
+      durs.forEach(d => counts[Math.min(BINS-1, Math.floor(d / maxD * BINS))]++)
+      const maxC = Math.max(...counts, 1)
+      const bars = counts.map((c, i) => {
+        const lo = (i * maxD / BINS).toFixed(0), hi = ((i+1) * maxD / BINS).toFixed(0)
+        return `<div title="${lo}–${hi} min: ${c} response${c===1?'':'s'}" style="flex:1;background:var(--accent,#6c5ce7);opacity:${c?0.35+0.65*c/maxC:0.08};height:${Math.max(3, c/maxC*40)}px;border-radius:2px 2px 0 0;"></div>`
+      }).join('')
+      timeHtml = `
+        <div class="analytics-section-title" style="margin-top:18px;">Completion time <span style="font-weight:500;font-size:11px;color:var(--text-tertiary);text-transform:none;letter-spacing:0;">· median ${median.toFixed(median<10?1:0)} min — two separate humps usually mean careful readers vs speeders</span></div>
+        <div style="display:flex;align-items:flex-end;gap:2px;height:44px;">${bars}</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);margin-top:2px;"><span>0 min</span><span>${maxD.toFixed(0)} min</span></div>
+      `
+    }
 
     // — Completion funnel: per-item non-response, among submitted responses —
     const nQ = Math.max(...responses.map(r => (r.questions || []).length), 0)
@@ -10019,6 +10076,7 @@ function openAnalytics() {
       </div>
       <div class="analytics-dist-section">${distRows}</div>
       ${itemDetails}
+      ${timeHtml}
       ${qualityHtml}
       ${funnelHtml}
       ${deltaHtml}
@@ -10026,6 +10084,50 @@ function openAnalytics() {
   }
 
   goTo('analytics')
+}
+
+// =====================================================================
+//  CODEBOOK EXPORT — variable name, item text verbatim, scale citation,
+//  anchors, reverse flags. The codebook is what makes the CSV analyzable
+//  in any tool, including ToolsScope.
+// =====================================================================
+function exportCodebook() {
+  const cfg = state.study || {}
+  const studyId = cfg.id || document.getElementById('study-code-display')?.textContent || 'study'
+  const responses = JSON.parse(localStorage.getItem(`cadence_responses_${studyId}`) || '[]')
+  // Question list: prefer the fullest submitted response (it reflects what
+  // participants actually saw); nothing is guessed.
+  let qs = []
+  for (const r of responses) if ((r.questions || []).length > qs.length) qs = r.questions
+  if (!qs.length) { alert('No responses yet — the codebook is built from what participants actually saw.'); return }
+  const lib = (typeof SCALE_LIBRARY !== 'undefined') ? SCALE_LIBRARY : []
+  const scaleFor = abbr => lib.find(s => s.abbr === abbr)
+  const esc = v => { const s = String(v == null ? '' : v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s }
+  const rows = [['variable', 'item_text_verbatim', 'scale', 'scale_name', 'type', 'reversed', 'response_format', 'anchors', 'citation', 'doi'].join(',')]
+  const counters = {}
+  for (const q of qs) {
+    const abbr = q.scaleAbbr || (q.demographic ? 'DEMO' : q.attention ? 'ATTN' : 'CUSTOM')
+    counters[abbr] = (counters[abbr] || 0) + 1
+    const s = scaleFor(q.scaleAbbr)
+    rows.push([
+      esc(`${abbr.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_${counters[abbr]}`),
+      esc(q.text || ''),
+      esc(q.scaleAbbr || ''),
+      esc(s?.name || ''),
+      esc(q.demographic ? 'demographic' : q.attention ? 'attention_check' : 'likert'),
+      esc(q.reversed ? 'R' : ''),
+      esc(s?.response_format || (q.demographic ? q.dtype || 'open' : '1–7')),
+      esc(s?.anchors ? s.anchors.join(' … ') : (s?.likert_labels ? s.likert_labels.join(' / ') : '')),
+      esc(s?.citation?.apa || ''),
+      esc(s?.citation?.doi || ''),
+    ].join(','))
+  }
+  const blob = new Blob(['﻿' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `cadence_${studyId}_codebook.csv`
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000)
 }
 
 // =====================================================================
