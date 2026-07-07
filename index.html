@@ -9099,7 +9099,12 @@ function renderQuestion(idx) {
   const qs = state.session.questions
   const q = qs[idx]
   const n = qs.length
-  const pct = Math.round((idx / n) * 100)
+  // Endowed progress / goal-gradient: getting through consent + the intro to
+  // reach question 1 is a real first step, so the bar counts arrival as the
+  // first checkpoint — (idx+1)/(n+1) — and never opens at a discouraging 0%.
+  // 100% is reserved for the completion screen. A meter that shows momentum
+  // measurably lowers survey drop-off; every value still maps to real progress.
+  const pct = Math.round(((idx + 1) / (n + 1)) * 100)
 
   document.getElementById('progress-fill').style.width = `${pct}%`
   document.getElementById('progress-label').textContent = `${pct}%`
