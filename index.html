@@ -164,6 +164,45 @@
     margin-bottom: 48px;
   }
 
+  /* ---- study preview (landing) ---- */
+  #screen-landing { justify-content: flex-start; padding-top: max(12vh, 64px); }
+  .cdp { width: 100%; max-width: 980px; margin: 72px auto 24px; text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 26px 28px 22px; box-shadow: 0 30px 60px -40px rgba(14,14,24,.35); }
+  .cdp-k { font: 600 11px/1 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+  .cdp-h { font-size: clamp(22px, 3vw, 30px); font-weight: 700; letter-spacing: -.02em; margin: 8px 0 14px; color: var(--text); }
+  .cdp-h em { font-style: normal; color: var(--accent); }
+  .cdp-ask { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+  .cdp-ask label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .cdp-ask input { flex: 1 1 260px; min-width: 0; width: auto; font-size: 15px; font-weight: 500; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+  .cdp-ask select { flex: 0 0 auto; width: auto; min-width: 0; font-size: 13px; font-weight: 500; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+  .cdp .cdp-ask select { width: auto !important; max-width: 160px; }
+  .cdp-pick { display: grid; gap: 8px; margin: 14px 0 6px; }
+  .cdp-term { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--text-secondary); }
+  .cdp-term > b { min-width: 120px; color: var(--text); font-weight: 600; }
+  .cdp-term button { font: 500 12.5px inherit; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; }
+  .cdp-term button small { color: var(--text-secondary); margin-left: 4px; }
+  .cdp-term button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .cdp-term button[aria-pressed="true"] small { color: rgba(255,255,255,.8); }
+  .cdp-path { margin-top: 12px; }
+  .cdp-path svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .cdp-path text { font-family: inherit; }
+  .cdp-path .k { font: 600 10px 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: .08em; fill: var(--text-secondary); text-transform: uppercase; }
+  .cdp-path .ab { font-size: 12.5px; font-weight: 700; fill: var(--text); }
+  .cdp-path .dm { font-size: 10.5px; fill: #fff; }
+  .cdp-path .mu { font: 500 10.5px 'IBM Plex Mono', ui-monospace, monospace; fill: var(--text-secondary); }
+  .cdp-path .rv { fill: var(--text); }
+  .cdp-path .wv { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
+  .cdp-path .wl { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 2 5; stroke-linecap: round; }
+  .cdp-low { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; margin-top: 12px; align-items: start; }
+  .cdp-first { border: 1px solid var(--border); border-radius: 18px; padding: 18px 18px 16px; background: var(--bg); }
+  .cdp-first .q { font-size: 17px; font-weight: 600; line-height: 1.35; color: var(--text); margin: 6px 0 12px; }
+  .cdp-first .opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cdp-first .opts span { font-size: 12px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); }
+  .cdp-first .cite { font-size: 11px; color: var(--text-secondary); margin-top: 10px; }
+  .cdp-rule { font-size: 12px; line-height: 1.55; color: var(--text-secondary); margin: 0 0 12px; }
+  @media (max-width: 720px) { .cdp { padding: 20px 16px; border-radius: 18px; margin-top: 48px; } .cdp-low { grid-template-columns: 1fr; } .cdp-term > b { min-width: 0; width: 100%; } }
+  @media (prefers-reduced-motion: no-preference) { .cdp-path .seg { transform-box: fill-box; transform-origin: left; animation: cdpGrow .7s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i) * 70ms); } }
+  @keyframes cdpGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
   .landing-actions {
     display: flex;
     gap: 14px;
@@ -1884,6 +1923,29 @@ html,body{ overflow-x:clip; }
     <button class="btn btn-secondary" onclick="showJoinPrompt()">Join a Study</button>
     <button class="btn btn-secondary" onclick="openMyStudies()">My Studies</button>
   </div>
+
+  <!-- Study preview (2026-10-17): real scales from the library → the participant's path, item by item, across waves -->
+  <section class="cdp" id="cdp" aria-label="Preview the study your participants would take">
+    <div class="cdp-k">Before you build</div>
+    <h2 class="cdp-h">What will your participants <em>live through?</em></h2>
+    <form class="cdp-ask" id="cdpForm" autocomplete="off">
+      <label for="cdpQ">Measure</label>
+      <input id="cdpQ" type="search" value="burnout, work engagement" placeholder="e.g. burnout, job satisfaction, turnover"/>
+      <label for="cdpW">Waves</label>
+      <select id="cdpW"><option value="1">1 (cross-sectional)</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="6">6</option></select>
+      <label for="cdpG">every</label>
+      <select id="cdpG"><option value="14">2 weeks</option><option value="30" selected>month</option><option value="91">3 months</option><option value="182">6 months</option></select>
+    </form>
+    <div class="cdp-pick" id="cdpPick"></div>
+    <div class="cdp-path" id="cdpPath"></div>
+    <div class="cdp-low">
+      <div class="cdp-first" id="cdpFirst"></div>
+      <div class="cdp-go">
+        <p class="cdp-rule" id="cdpRule"></p>
+        <button class="btn btn-primary" id="cdpBuild" type="button">Build this study →</button>
+      </div>
+    </div>
+  </section>
 </div>
 
 <!-- ==================== MY STUDIES (creator dashboard) ==================== -->
@@ -8451,6 +8513,116 @@ function renderReview() {
     ${totalItems === 0 ? `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>Add at least one scale or custom question before publishing.</p></div>` : ''}
   `
 }
+
+// ---- Study preview on the landing ----
+// Matches each construct the visitor types to scales in SCALE_LIBRARY (names, abbreviations,
+// dimensions — no AI), then draws what a participant answers: every scale as a block sized by its
+// items, split into its real dimensions, reverse-keyed items notched, repeated across the chosen waves
+// on real dates. Minutes use a stated planning assumption (6 s per item), not a measured figure.
+const CDP_SEC_PER_ITEM = 6
+const cdpPicked = {}            // term → chosen scale id (null = none)
+function cdpMatches(term) {
+  const t = term.toLowerCase().trim(), toks = t.split(/[^a-z0-9]+/).filter(w => w.length > 2)
+  if (!t) return []
+  const out = []
+  for (const sc of SCALE_LIBRARY) {
+    if (sc.domain === 'Demographics') continue
+    const name = (sc.name || '').toLowerCase(), ab = (sc.abbr || '').toLowerCase()
+    const dims = [...new Set((sc.items || []).map(i => (i.dim || '').toLowerCase()))].join(' | ')
+    let sco = 0
+    if (ab === t) sco += 12
+    if (name.includes(t)) sco += 8
+    else if (toks.length && toks.every(w => name.includes(w.slice(0, 6)))) sco += 5
+    if (dims.includes(t)) sco += 3
+    else if (toks.length && toks.every(w => dims.includes(w.slice(0, 6)))) sco += 2
+    if (sco) out.push([sco - (sc.items_count || 0) / 100, sc])   // ties → the shorter instrument
+  }
+  return out.sort((a, b) => b[0] - a[0]).slice(0, 3).map(x => x[1])
+}
+function cdpRender() {
+  const box = document.getElementById('cdp'); if (!box) return
+  const terms = document.getElementById('cdpQ').value.split(/[,;]+/).map(x => x.trim()).filter(Boolean).slice(0, 5)
+  const waves = +document.getElementById('cdpW').value, gap = +document.getElementById('cdpG').value
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+  // candidate chips per term
+  let pick = ''
+  const chosen = []
+  for (const term of terms) {
+    const m = cdpMatches(term)
+    if (!(term in cdpPicked) || (cdpPicked[term] != null && !m.some(x => x.id === cdpPicked[term]))) cdpPicked[term] = m[0] ? m[0].id : null
+    pick += `<div class="cdp-term"><b>${esc(term)}</b>` + (m.length ? m.map(sc => `<button type="button" data-term="${esc(term)}" data-id="${sc.id}" aria-pressed="${cdpPicked[term] === sc.id}" title="${esc(sc.name)} — ${sc.items_count} items, ${esc(sc.response_format || '')}">${esc(sc.abbr || sc.name)}${m.filter(o => o.abbr === sc.abbr).length > 1 ? ` <small>${esc(sc.name.split(/[—(]/)[0].trim().slice(0, 34))}</small>` : ''}<small>${sc.items_count} items</small></button>`).join('') + `<button type="button" data-term="${esc(term)}" data-id="" aria-pressed="${cdpPicked[term] == null}">skip</button>` : `<span>no scale in the library matches — you can add your own questions in the builder</span>`) + `</div>`
+    const sc = SCALE_LIBRARY.find(x => x.id === cdpPicked[term])
+    if (sc && !chosen.includes(sc)) chosen.push(sc)
+  }
+  document.getElementById('cdpPick').innerHTML = pick
+  // the path
+  const host = document.getElementById('cdpPath'), W = Math.max(300, host.clientWidth || 900), mobile = W < 560
+  const items = chosen.reduce((a, sc) => a + (sc.items || []).length, 0)
+  const L = 0, R = 0, top = 34, bh = mobile ? 34 : 40, cons = Math.max(26, W * .045)
+  const usable = W - L - R - cons - 6
+  const per = items ? usable / items : 0
+  let g = `<text class="k" x="0" y="12">${mobile ? 'one wave' : 'one wave, in the order participants meet it'}</text>`
+  g += `<rect class="seg" style="--i:0" x="${L}" y="${top}" width="${cons}" height="${bh}" rx="8" fill="var(--surface2)" stroke="var(--border)"/><text class="mu" x="${L + cons / 2}" y="${top + bh / 2 + 4}" text-anchor="middle">✓</text><text class="mu" x="${L}" y="${top + bh + 16}">consent</text>`
+  let x = L + cons + 6
+  const hues = ['#1f6f5c', '#3a5ea8', '#a0522d', '#7a4fa3', '#2f7f8f']
+  chosen.forEach((sc, k) => {
+    const its = sc.items || [], w = its.length * per, c = hues[k % hues.length]
+    // consecutive runs of one dimension = one block
+    const runs = []
+    its.forEach((it, i) => { const d = it.dim || sc.abbr; if (runs.length && runs[runs.length - 1].d === d) runs[runs.length - 1].n++; else runs.push({ d, n: 1, at: i }) })
+    g += `<g class="seg" style="--i:${k + 1}"><title>${esc(sc.name)} — ${its.length} items in ${runs.length} block${runs.length > 1 ? 's' : ''}; ${its.filter(i => i.reversed).length} reverse-keyed</title>`
+    runs.forEach((ru, j) => {
+      const rx = x + ru.at * per, rw = ru.n * per
+      g += `<rect x="${rx}" y="${top}" width="${Math.max(1, rw - 1.5)}" height="${bh}" rx="${j === 0 || j === runs.length - 1 ? 8 : 2}" fill="${c}" opacity="${j % 2 ? .78 : 1}"/>`
+      if (rw > 64 && !mobile) g += `<text class="dm" x="${rx + 7}" y="${top + bh / 2 + 4}">${esc(ru.d.length > rw / 6.4 ? ru.d.slice(0, Math.floor(rw / 6.4) - 1) + '…' : ru.d)}</text>`
+    })
+    its.forEach((it, i) => { if (it.reversed) g += `<path class="rv" d="M${x + (i + .5) * per - 3},${top + bh + 3} l3,5 l3,-5 z"><title>Item ${i + 1} is reverse-keyed: “${esc(it.text)}”</title></path>` })
+    g += `</g><text class="ab" x="${x}" y="${top - 8}">${esc(sc.abbr || sc.name)}</text><text class="mu" x="${x}" y="${top + bh + 22}">${its.length} items</text>`
+    x += w
+  })
+  const mins = Math.max(1, Math.round((items * CDP_SEC_PER_ITEM + 30) / 60))
+  g += `<text class="mu" x="${W}" y="12" text-anchor="end">${items} items · ≈${mins} min</text>`
+  // waves on real dates
+  const wy = top + bh + 62
+  if (waves > 1) {
+    const span = W - 40, step = span / (waves - 1)
+    g += `<text class="k" x="0" y="${wy - 22}">${waves} waves, every ${gap === 14 ? '2 weeks' : gap === 30 ? 'month' : gap === 91 ? '3 months' : '6 months'} from today</text>`
+    g += `<line class="wl" x1="20" x2="${20 + span}" y1="${wy}" y2="${wy}"/>`
+    for (let i = 0; i < waves; i++) {
+      const d = new Date(); d.setDate(d.getDate() + i * gap)
+      const cx = 20 + i * step
+      g += `<circle class="wv" cx="${cx}" cy="${wy}" r="8"/><text class="ab" x="${cx}" y="${wy + 4}" text-anchor="middle" font-size="10">${i + 1}</text><text class="mu" x="${cx}" y="${wy + 24}" text-anchor="${i === 0 ? 'start' : i === waves - 1 ? 'end' : 'middle'}" dx="${i === 0 ? -8 : i === waves - 1 ? 8 : 0}">${d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: i === 0 || i === waves - 1 ? 'numeric' : undefined })}</text>`
+    }
+  } else g += `<text class="k" x="0" y="${wy - 10}">one wave — a cross-sectional snapshot</text>`
+  const H = wy + 34
+  host.innerHTML = chosen.length ? `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Participant path: ${chosen.map(c => c.abbr).join(', ')}, ${items} items per wave, ${waves} waves">${g}</svg>` : `<p class="cdp-rule">Type a construct (burnout, engagement, satisfaction…) to see the scales that measure it.</p>`
+  // the first thing they answer, verbatim
+  const first = chosen[0], it0 = first && (first.items || [])[0]
+  document.getElementById('cdpFirst').innerHTML = it0 ? `<div class="cdp-k">What they answer first</div><div class="q">${esc(it0.text)}</div><div class="opts">${(first.likert_labels || first.anchors || []).map(o => `<span>${esc(o)}</span>`).join('')}</div><div class="cite">${esc(first.abbr)} item 1, verbatim · ${esc(String((first.citation && first.citation.apa) || '').split(/\)\./)[0] + ')')}</div>` : ''
+  const total = items * waves
+  document.getElementById('cdpRule').innerHTML = chosen.length ? `<b>${waves} × ${items} = ${total} answers</b> per participant, about ${mins} minute${mins > 1 ? 's' : ''} per wave. Scales come from Cadence's library of ${SCALE_LIBRARY.length} validated instruments, items and citations verbatim; the match is by name, abbreviation and dimension, so check it fits your construct. Blocks are the scale's own dimensions in item order; ▾ marks a reverse-keyed item. Minutes assume ${CDP_SEC_PER_ITEM} seconds per item plus consent, a planning guess, not a measurement.` : ''
+  const b = document.getElementById('cdpBuild'); b.disabled = !chosen.length
+  b.onclick = () => {
+    state.study.selectedScales = chosen.map(c => c.id)
+    state.study.maxWaves = waves
+    const sw = document.getElementById('study-waves'); if (sw) sw.value = String(waves)
+    newStudy()
+    toast(`${chosen.length} scale${chosen.length > 1 ? 's' : ''} pre-selected (${chosen.map(c => c.abbr).join(', ')}) · ${waves} wave${waves > 1 ? 's' : ''}. Name your study, then Choose Scales →`)
+  }
+}
+;(function () {
+  const go = () => {
+    if (!document.getElementById('cdp')) return
+    document.getElementById('cdpForm').addEventListener('submit', e => { e.preventDefault(); cdpRender() })
+    document.getElementById('cdpQ').addEventListener('input', () => { clearTimeout(go.t); go.t = setTimeout(cdpRender, 250) })
+    document.getElementById('cdpW').addEventListener('change', cdpRender)
+    document.getElementById('cdpG').addEventListener('change', cdpRender)
+    document.getElementById('cdpPick').addEventListener('click', e => { const b = e.target.closest('button[data-term]'); if (!b) return; cdpPicked[b.dataset.term] = b.dataset.id ? +b.dataset.id : null; cdpRender() })
+    let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(cdpRender, 200) })
+    cdpRender()
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go()
+})();
 
 // ---- Quick Start hand-off receiver ----
 // ?gen=<topic> from the hub Quick Start lands the user on the builder
